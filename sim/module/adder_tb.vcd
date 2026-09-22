@@ -1,0 +1,74 @@
+$date
+	Tue Sep 22 03:07:41 2026
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1ps
+$end
+$scope module adder_tb $end
+$var wire 32 ! sum [31:0] $end
+$var wire 1 " cout $end
+$var reg 1 # cin $end
+$var reg 32 $ operand_a [31:0] $end
+$var reg 32 % operand_b [31:0] $end
+$scope module dut $end
+$var wire 1 # cin $end
+$var wire 32 & operand_a [31:0] $end
+$var wire 32 ' operand_b [31:0] $end
+$var wire 32 ( sum [31:0] $end
+$var wire 1 " cout $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+$comment Show the parameter values. $end
+$dumpall
+$end
+#0
+$dumpvars
+b0 (
+b0 '
+b0 &
+b0 %
+b0 $
+0#
+0"
+b0 !
+$end
+#20000
+b11 !
+b11 (
+b10 %
+b10 '
+b1 $
+b1 &
+#30000
+b0 !
+b0 (
+1"
+b1 %
+b1 '
+b11111111111111111111111111111111 $
+b11111111111111111111111111111111 &
+#40000
+1#
+b0 %
+b0 '
+#50000
+b10000000000000000000000000000000 !
+b10000000000000000000000000000000 (
+0"
+0#
+b1 %
+b1 '
+b1111111111111111111111111111111 $
+b1111111111111111111111111111111 &
+#60000
+b10011001100110011001100110011001 !
+b10011001100110011001100110011001 (
+b10000111011001010100001100100001 %
+b10000111011001010100001100100001 '
+b10010001101000101011001111000 $
+b10010001101000101011001111000 &
+#80000

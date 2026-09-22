@@ -1,0 +1,126 @@
+#! /opt/oss-cad-suite/bin/vvp
+:ivl_version "12.0 (devel)" "(s20150603-1560-g899d45923)";
+:ivl_delay_selection "TYPICAL";
+:vpi_time_precision - 12;
+:vpi_module "/opt/oss-cad-suite/lib/ivl/system.vpi";
+:vpi_module "/opt/oss-cad-suite/lib/ivl/vhdl_sys.vpi";
+:vpi_module "/opt/oss-cad-suite/lib/ivl/vhdl_textio.vpi";
+:vpi_module "/opt/oss-cad-suite/lib/ivl/v2005_math.vpi";
+:vpi_module "/opt/oss-cad-suite/lib/ivl/va_math.vpi";
+:vpi_module "/opt/oss-cad-suite/lib/ivl/v2009.vpi";
+S_0x55558c7331c0 .scope package, "$unit" "$unit" 2 1;
+ .timescale 0 0;
+S_0x55558c733350 .scope module, "adder_tb" "adder_tb" 3 3;
+ .timescale -9 -12;
+v0x55558c75d690_0 .var "cin", 0 0;
+v0x55558c75d750_0 .net "cout", 0 0, L_0x55558c75da00;  1 drivers
+v0x55558c75d7f0_0 .var "operand_a", 31 0;
+v0x55558c75d890_0 .var "operand_b", 31 0;
+v0x55558c75d960_0 .net "sum", 31 0, L_0x55558c75daf0;  1 drivers
+S_0x55558c73e2a0 .scope module, "dut" "adder" 3 14, 4 1 0, S_0x55558c733350;
+ .timescale 0 0;
+    .port_info 0 /INPUT 1 "cin";
+    .port_info 1 /INPUT 32 "operand_a";
+    .port_info 2 /INPUT 32 "operand_b";
+    .port_info 3 /OUTPUT 32 "sum";
+    .port_info 4 /OUTPUT 1 "cout";
+L_0x7ecd00790060 .functor BUFT 1, C4<0>, C4<0>, C4<0>, C4<0>;
+v0x55558c73e480_0 .net *"_ivl_10", 0 0, L_0x7ecd00790060;  1 drivers
+v0x55558c75cb80_0 .net *"_ivl_11", 32 0, L_0x55558c75dee0;  1 drivers
+v0x55558c75cc60_0 .net *"_ivl_13", 32 0, L_0x55558c75e020;  1 drivers
+L_0x7ecd007900a8 .functor BUFT 1, C4<00000000000000000000000000000000>, C4<0>, C4<0>, C4<0>;
+v0x55558c75cd20_0 .net *"_ivl_16", 31 0, L_0x7ecd007900a8;  1 drivers
+v0x55558c75ce00_0 .net *"_ivl_17", 32 0, L_0x55558c76e1b0;  1 drivers
+v0x55558c75cf30_0 .net *"_ivl_3", 32 0, L_0x55558c75dc30;  1 drivers
+L_0x7ecd00790018 .functor BUFT 1, C4<0>, C4<0>, C4<0>, C4<0>;
+v0x55558c75d010_0 .net *"_ivl_6", 0 0, L_0x7ecd00790018;  1 drivers
+v0x55558c75d0f0_0 .net *"_ivl_7", 32 0, L_0x55558c75dd70;  1 drivers
+v0x55558c75d1d0_0 .net "cin", 0 0, v0x55558c75d690_0;  1 drivers
+v0x55558c75d290_0 .net "cout", 0 0, L_0x55558c75da00;  alias, 1 drivers
+v0x55558c75d350_0 .net "operand_a", 31 0, v0x55558c75d7f0_0;  1 drivers
+v0x55558c75d430_0 .net "operand_b", 31 0, v0x55558c75d890_0;  1 drivers
+v0x55558c75d510_0 .net "sum", 31 0, L_0x55558c75daf0;  alias, 1 drivers
+L_0x55558c75da00 .part L_0x55558c76e1b0, 32, 1;
+L_0x55558c75daf0 .part L_0x55558c76e1b0, 0, 32;
+L_0x55558c75dc30 .concat [ 32 1 0 0], v0x55558c75d7f0_0, L_0x7ecd00790018;
+L_0x55558c75dd70 .concat [ 32 1 0 0], v0x55558c75d890_0, L_0x7ecd00790060;
+L_0x55558c75dee0 .arith/sum 33, L_0x55558c75dc30, L_0x55558c75dd70;
+L_0x55558c75e020 .concat [ 1 32 0 0], v0x55558c75d690_0, L_0x7ecd007900a8;
+L_0x55558c76e1b0 .arith/sum 33, L_0x55558c75dee0, L_0x55558c75e020;
+    .scope S_0x55558c733350;
+T_0 ;
+    %vpi_call/w 3 24 "$dumpfile", "sim/module/adder_tb.vcd" {0 0 0};
+    %vpi_call/w 3 25 "$dumpvars", 32'sb00000000000000000000000000000000, S_0x55558c733350 {0 0 0};
+    %end;
+    .thread T_0;
+    .scope S_0x55558c733350;
+T_1 ;
+    %pushi/vec4 0, 0, 1;
+    %store/vec4 v0x55558c75d690_0, 0, 1;
+    %pushi/vec4 0, 0, 32;
+    %store/vec4 v0x55558c75d7f0_0, 0, 32;
+    %pushi/vec4 0, 0, 32;
+    %store/vec4 v0x55558c75d890_0, 0, 32;
+    %delay 10000, 0;
+    %pushi/vec4 0, 0, 32;
+    %store/vec4 v0x55558c75d7f0_0, 0, 32;
+    %pushi/vec4 0, 0, 32;
+    %store/vec4 v0x55558c75d890_0, 0, 32;
+    %pushi/vec4 0, 0, 1;
+    %store/vec4 v0x55558c75d690_0, 0, 1;
+    %delay 10000, 0;
+    %vpi_call/w 3 43 "$display", "Test 1: A=%h B=%h Cin=%b -> Sum=%h Cout=%b", v0x55558c75d7f0_0, v0x55558c75d890_0, v0x55558c75d690_0, v0x55558c75d960_0, v0x55558c75d750_0 {0 0 0};
+    %pushi/vec4 1, 0, 32;
+    %store/vec4 v0x55558c75d7f0_0, 0, 32;
+    %pushi/vec4 2, 0, 32;
+    %store/vec4 v0x55558c75d890_0, 0, 32;
+    %pushi/vec4 0, 0, 1;
+    %store/vec4 v0x55558c75d690_0, 0, 1;
+    %delay 10000, 0;
+    %vpi_call/w 3 52 "$display", "Test 2: A=%h B=%h Cin=%b -> Sum=%h Cout=%b", v0x55558c75d7f0_0, v0x55558c75d890_0, v0x55558c75d690_0, v0x55558c75d960_0, v0x55558c75d750_0 {0 0 0};
+    %pushi/vec4 4294967295, 0, 32;
+    %store/vec4 v0x55558c75d7f0_0, 0, 32;
+    %pushi/vec4 1, 0, 32;
+    %store/vec4 v0x55558c75d890_0, 0, 32;
+    %pushi/vec4 0, 0, 1;
+    %store/vec4 v0x55558c75d690_0, 0, 1;
+    %delay 10000, 0;
+    %vpi_call/w 3 61 "$display", "Test 3: A=%h B=%h Cin=%b -> Sum=%h Cout=%b", v0x55558c75d7f0_0, v0x55558c75d890_0, v0x55558c75d690_0, v0x55558c75d960_0, v0x55558c75d750_0 {0 0 0};
+    %pushi/vec4 4294967295, 0, 32;
+    %store/vec4 v0x55558c75d7f0_0, 0, 32;
+    %pushi/vec4 0, 0, 32;
+    %store/vec4 v0x55558c75d890_0, 0, 32;
+    %pushi/vec4 1, 0, 1;
+    %store/vec4 v0x55558c75d690_0, 0, 1;
+    %delay 10000, 0;
+    %vpi_call/w 3 70 "$display", "Test 4: A=%h B=%h Cin=%b -> Sum=%h Cout=%b", v0x55558c75d7f0_0, v0x55558c75d890_0, v0x55558c75d690_0, v0x55558c75d960_0, v0x55558c75d750_0 {0 0 0};
+    %pushi/vec4 2147483647, 0, 32;
+    %store/vec4 v0x55558c75d7f0_0, 0, 32;
+    %pushi/vec4 1, 0, 32;
+    %store/vec4 v0x55558c75d890_0, 0, 32;
+    %pushi/vec4 0, 0, 1;
+    %store/vec4 v0x55558c75d690_0, 0, 1;
+    %delay 10000, 0;
+    %vpi_call/w 3 79 "$display", "Test 5: A=%h B=%h Cin=%b -> Sum=%h Cout=%b", v0x55558c75d7f0_0, v0x55558c75d890_0, v0x55558c75d690_0, v0x55558c75d960_0, v0x55558c75d750_0 {0 0 0};
+    %pushi/vec4 305419896, 0, 32;
+    %store/vec4 v0x55558c75d7f0_0, 0, 32;
+    %pushi/vec4 2271560481, 0, 32;
+    %store/vec4 v0x55558c75d890_0, 0, 32;
+    %pushi/vec4 0, 0, 1;
+    %store/vec4 v0x55558c75d690_0, 0, 1;
+    %delay 10000, 0;
+    %vpi_call/w 3 88 "$display", "Test 6: A=%h B=%h Cin=%b -> Sum=%h Cout=%b", v0x55558c75d7f0_0, v0x55558c75d890_0, v0x55558c75d690_0, v0x55558c75d960_0, v0x55558c75d750_0 {0 0 0};
+    %delay 10000, 0;
+    %vpi_call/w 3 93 "$display", "========================================" {0 0 0};
+    %vpi_call/w 3 94 "$display", "All tests completed." {0 0 0};
+    %vpi_call/w 3 95 "$display", "========================================" {0 0 0};
+    %vpi_call/w 3 97 "$finish" {0 0 0};
+    %end;
+    .thread T_1;
+# The file index is used to find the file name in the following table.
+:file_names 5;
+    "N/A";
+    "<interactive>";
+    "-";
+    "testbench/module/adder_tb.sv";
+    "core/module/adder.sv";
