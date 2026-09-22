@@ -1,0 +1,5 @@
+# Icarus Verilog simulation
+*.vvp
+
+# Waveform
+*.vcd
