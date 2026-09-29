@@ -16,7 +16,7 @@ module alu (
     localparam logic [3:0] SRA = 4'b1001;
 
 // Adder/Subtractor
-    logic [31:0] adde32_b;
+    logic [31:0] adder32_b;
     logic adder32_cin;
     logic [31:0] adder32_result;
     logic adder32_cout;
@@ -81,7 +81,7 @@ module alu (
 
     always_comb begin
 
-        shight_right = 1'b0;
+        shift_right = 1'b0;
         shift_arith = 1'b0;
 
         case (i_alu_op)

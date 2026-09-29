@@ -19,23 +19,35 @@ module shifter32 (
     assign shift1 = i_right ? right1 : left1;
     assign stage1 = (i_shamt[0]) ? shift1 : stage0;
 
+    logic [1:0] sign2;
+    assign sign2 = {2{stage1[31]}}; 
+
     assign left2 = {stage1[29:0], 2'b00};
-    assign right2 = i_arith ? {2{stage1[31]}, stage1[31:2]} : {2'b00, stage1[31:2]};
+    assign right2 = i_arith ? {sign2, stage1[31:2]} : {2'b00, stage1[31:2]};
     assign shift2 = i_right ? right2 : left2;
     assign stage2 = (i_shamt[1]) ? shift2 : stage1;
 
+    logic [3:0] sign4;
+    assign sign4 = {4{stage2[31]}};
+
     assign left4 = {stage2[27:0], 4'b0000};
-    assign right4 = i_arith ? {4{stage2[31]}, stage2[31:4]} : {4'b0000, stage2[31:4]};
+    assign right4 = i_arith ? {sign4, stage2[31:4]} : {4'b0000, stage2[31:4]};
     assign shift4 = i_right ? right4 : left4;   
     assign stage4 = (i_shamt[2]) ? shift4 : stage2;
 
+    logic [7:0] sign8;
+    assign sign8 = {8{stage4[31]}};
+
     assign left8 = {stage4[23:0], 8'b00000000};
-    assign right8 = i_arith ? {8{stage4[31]}, stage4[31:8]} : {8'b00000000, stage4[31:8]};
+    assign right8 = i_arith ? {sign8, stage4[31:8]} : {8'b00000000, stage4[31:8]};
     assign shift8 = i_right ? right8 : left8;
     assign stage8 = (i_shamt[3]) ? shift8 : stage4;
 
+    logic [15:0] sign16;
+    assign sign16 = {16{stage8[31]}};
+
     assign left16 = {stage8[15:0], 16'b0000000000000000};
-    assign right16 = i_arith ? {16{stage8[31]}, stage8[31:16]} : {16'b0000000000000000, stage8[31:16]};
+    assign right16 = i_arith ? {sign16, stage8[31:16]} : {16'b0000000000000000, stage8[31:16]};
     assign shift16 = i_right ? right16 : left16;
     assign stage16 = (i_shamt[4]) ? shift16 : stage8;   
 
