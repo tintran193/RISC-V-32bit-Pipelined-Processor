@@ -1,4 +1,4 @@
-module adder (
+module adder32 (
     input  logic [31:0] i_a,
     input  logic [31:0] i_b,
     input  logic        i_cin,
