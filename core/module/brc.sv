@@ -1,7 +1,7 @@
 module brc (
     input logic [31:0] i_rs1_data,
     input logic [31:0] i_rs2_data,
-    input logic is_br_un,
+    input logic i_br_un,
 
     output logic o_br_less,
     output logic o_br_equal
@@ -21,7 +21,7 @@ module brc (
     assign sign_eq = ~(i_rs1_data[31] ^ i_rs2_data[31]);
     assign signed_lt = (i_rs1_data[31] & ~i_rs2_data[31]) | (sign_eq & unsigned_lt);
 
-    assign o_br_less = is_br_un ? signed_lt : unsigned_lt;
+    assign o_br_less = i_br_un ? signed_lt : unsigned_lt;
     assign o_br_equal = unsigned_eq;
 
 endmodule
