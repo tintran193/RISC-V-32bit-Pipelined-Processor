@@ -1,5 +1,5 @@
 $date
-	Tue Sep 29 17:15:43 2026
+	Fri Oct  2 01:28:44 2026
 $end
 $version
 	Icarus Verilog
@@ -35,7 +35,7 @@ $var wire 4 3 i_alu_op [3:0] $end
 $var wire 32 4 i_op_a [31:0] $end
 $var wire 32 5 i_op_b [31:0] $end
 $var wire 32 6 or_result [31:0] $end
-$var wire 1 7 signed_eq $end
+$var wire 1 7 sign_eq $end
 $var wire 1 8 signed_lt $end
 $var wire 32 9 xor_result [31:0] $end
 $var wire 1 : unsigned_lt $end

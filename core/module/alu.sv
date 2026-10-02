@@ -54,10 +54,10 @@ module alu (
 
     // Signed
     logic signed_lt;
-    logic signed_eq; 
+    logic sign_eq; 
 
-    assign signed_eq = ~(i_op_a[31] ^ i_op_b[31]);
-    assign signed_lt = (i_op_a[31] & ~i_op_b[31]) | (signed_eq & unsigned_lt);
+    assign sign_eq = ~(i_op_a[31] ^ i_op_b[31]);
+    assign signed_lt = (i_op_a[31] & ~i_op_b[31]) | (sign_eq & unsigned_lt);
 
     logic [31:0] slt_result;
     logic [31:0] sltu_result;
