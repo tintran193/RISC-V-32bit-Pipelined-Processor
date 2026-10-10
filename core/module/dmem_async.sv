@@ -1,5 +1,5 @@
 module dmem_async #(
-    parameter logic [31:0] START_ADDR = 32'h0000_1000,
+    parameter logic [31:0] START_ADDR = 32'h8000_0000,
     parameter integer      ADDR_WIDTH = 5
 ) (
     input  logic        i_clk,
