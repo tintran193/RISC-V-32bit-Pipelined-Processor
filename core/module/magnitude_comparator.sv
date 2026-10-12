@@ -7,10 +7,11 @@ module magnitude_comparator (
     output logic o_lt,
     output logic o_gt
 );
+    // unsigned signals
     logic unsigned_eq;
     logic unsigned_lt;
     logic unsigned_gt;
-
+    // signed signals
     logic same_sign;
     logic signed_lt;
     logic signed_gt;
@@ -26,7 +27,8 @@ module magnitude_comparator (
     assign same_sign = ~(i_a[31] ^ i_b[31]);
     assign signed_lt = (i_a[31] & ~i_b[31]) | (same_sign & unsigned_lt);
     assign signed_gt = (~i_a[31] & i_b[31]) | (same_sign & unsigned_gt);
-
+    
+    // Output assignments
     assign o_eq = unsigned_eq;
     assign o_lt = i_unsigned ? unsigned_lt : signed_lt;
     assign o_gt = i_unsigned ? unsigned_gt : signed_gt;
