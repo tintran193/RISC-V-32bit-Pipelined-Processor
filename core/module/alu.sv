@@ -4,66 +4,59 @@ module alu (
     input  logic [3:0]  i_alu_op,
     output logic [31:0] o_alu_data
 );
-    localparam logic [3:0] ADD = 4'b0000;
-    localparam logic [3:0] SUB = 4'b0001;
-    localparam logic [3:0] SLT = 4'b0010;   
-    localparam logic [3:0] SLTU = 4'b0011;
-    localparam logic [3:0] XOR = 4'b0100;
-    localparam logic [3:0] OR  = 4'b0101;
-    localparam logic [3:0] AND = 4'b0110;   
-    localparam logic [3:0] SLL = 4'b0111;
-    localparam logic [3:0] SRL = 4'b1000;
-    localparam logic [3:0] SRA = 4'b1001;
+    `include "parameter.h"
 
 // Adder/Subtractor
     logic [31:0] adder32_b;
-    logic adder32_cin;
+    logic adder32_sub;
     logic [31:0] adder32_result;
     logic adder32_cout;
 
     always_comb begin
         case (i_alu_op)
-            SUB: adder32_cin = 1'b1;
-            default: adder32_cin = 1'b0;
+            SUB: adder32_sub = 1'b1;
+            default: adder32_sub = 1'b0;
         endcase
     end
 
-    assign adder32_b = i_op_b ^ {32{adder32_cin}};
+    assign adder32_b = i_op_b ^ {32{adder32_sub}};
 
     adder32 u_adder32 (
         .i_a (i_op_a),
         .i_b (adder32_b),
-        .i_cin (adder32_cin),
+        .i_sub (adder32_sub),
         .o_sum (adder32_result),
         .o_cout (adder32_cout)
     );
 
-// Comparator
-    // Unsigned 
-    logic unsigned_lt;
-    logic unsigned_eq;
-    logic unsigned_gt;
+//Comparator
+    logic i_unsigned;
 
-    comparator32 u_comparator32 (
+    always_comb begin 
+        case (i_alu_op)
+            SLTU: i_unsigned = 1'b1;
+            default: i_unsigned = 1'b0;
+        endcase
+    end
+
+    logic o_eq;
+    logic o_lt;
+    logic o_gt;
+
+    magnitude_comparator u_magnitude_comparator (
         .i_a (i_op_a),
         .i_b (i_op_b),
-        .o_lt (unsigned_lt),
-        .o_eq (unsigned_eq),
-        .o_gt (unsigned_gt)
+        .i_unsigned (i_unsigned),
+        .o_eq (o_eq),
+        .o_lt (o_lt),
+        .o_gt (o_gt)
     );
-
-    // Signed
-    logic signed_lt;
-    logic sign_eq; 
-
-    assign sign_eq = ~(i_op_a[31] ^ i_op_b[31]);
-    assign signed_lt = (i_op_a[31] & ~i_op_b[31]) | (sign_eq & unsigned_lt);
 
     logic [31:0] slt_result;
     logic [31:0] sltu_result;
 
-    assign slt_result = {31'b0, signed_lt};
-    assign sltu_result = {31'b0, unsigned_lt};
+    assign slt_result = {31'b0, o_lt};
+    assign sltu_result = {31'b0, o_lt};
 
 // Logic Operations
     logic [31:0] and_result;
@@ -74,46 +67,27 @@ module alu (
     assign or_result  = i_op_a | i_op_b;
     assign xor_result = i_op_a ^ i_op_b;  
 
-// Shifter
-    logic shift_right;
-    logic shift_arith;
+//Shifter 
+    logic [1:0] i_mode;
     logic [31:0] shifter_result;
 
     always_comb begin
-
-        shift_right = 1'b0;
-        shift_arith = 1'b0;
-
         case (i_alu_op)
-            SLL: begin
-                shift_right = 1'b0;
-                shift_arith = 1'b0;
-            end
-            SRL: begin
-                shift_right = 1'b1;
-                shift_arith = 1'b0;
-            end
-            SRA: begin
-                shift_right = 1'b1;
-                shift_arith = 1'b1;
-            end
-            default: begin
-                shift_right = 1'b0;
-                shift_arith = 1'b0;
-            end
+            SRL: i_mode = 2'b00;
+            SLL: i_mode = 2'b01;
+            SRA: i_mode = 2'b10;
+            default: i_mode = 2'b11;
         endcase
     end
 
     shifter32 u_shifter32 (
         .i_data (i_op_a),
         .i_shamt (i_op_b[4:0]),
-        .i_right (shift_right),
-        .i_arith (shift_arith),
+        .i_mode (i_mode),
         .o_data (shifter_result)
     );
 
 // Mux
-
     always_comb begin
         case (i_alu_op)
             ADD: o_alu_data = adder32_result;

@@ -1,7 +1,7 @@
 module adder32 (
     input  logic [31:0] i_a,
     input  logic [31:0] i_b,
-    input  logic        i_cin,
+    input  logic        i_sub,
     output logic [31:0] o_sum,
     output logic        o_cout
 );
@@ -9,7 +9,7 @@ module adder32 (
     logic [32:0] c;
     genvar g;
 
-    assign c[0] = i_cin;
+    assign c[0] = i_sub;
 
     generate
         for (g = 0; g < 32; g = g + 1) begin : GEN_FA
