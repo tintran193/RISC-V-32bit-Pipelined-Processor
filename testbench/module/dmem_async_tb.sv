@@ -5,7 +5,7 @@ module dmem_async_tb;
     // =========================================================
     // Parameters
     // =========================================================
-    localparam logic [31:0] START_ADDR = 32'h0000_1000;
+    localparam logic [31:0] START_ADDR = 32'h8000_0000;
     localparam integer      ADDR_WIDTH = 5;
 
     // ADDR_WIDTH = 5
