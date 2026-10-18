@@ -1,7 +1,7 @@
 module magnitude_comparator (
-    input logic [31:0] i_a;
-    input logic [31:0] i_b;
-    input logic i_unsigned; // 1 -> unsigned, 0 -> signed
+    input logic [31:0] i_a,
+    input logic [31:0] i_b,
+    input logic i_unsigned, // 1 -> unsigned, 0 -> signed
 
     output logic o_eq,
     output logic o_lt,
