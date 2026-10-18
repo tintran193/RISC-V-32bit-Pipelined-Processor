@@ -1,27 +1,21 @@
 module brc (
     input logic [31:0] i_rs1_data,
     input logic [31:0] i_rs2_data,
-    input logic i_br_un,
+    input logic i_br_unsigned,
 
-    output logic o_br_less,
-    output logic o_br_equal
+    output logic o_br_equal,
+    output logic o_br_less
 );
 
-    logic unsigned_gt, unsigned_eq, unsigned_lt;
-    logic signed_eq, signed_lt;
+    logic br_gt;
 
-    comparator32 u_comparator32 (
+    magnitude_comparator u_magnitude_comparator (
         .i_a (i_rs1_data),
         .i_b (i_rs2_data),
-        .o_lt (unsigned_lt),
-        .o_eq (unsigned_eq),
-        .o_gt (unsigned_gt)
+        .i_unsigned (i_br_unsigned),
+        .o_eq (o_br_equal),
+        .o_lt (o_br_less),
+        .o_gt (br_gt)
     );
-
-    assign sign_eq = ~(i_rs1_data[31] ^ i_rs2_data[31]);
-    assign signed_lt = (i_rs1_data[31] & ~i_rs2_data[31]) | (sign_eq & unsigned_lt);
-
-    assign o_br_less = i_br_un ? signed_lt : unsigned_lt;
-    assign o_br_equal = unsigned_eq;
 
 endmodule
