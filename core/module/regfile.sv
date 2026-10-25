@@ -15,14 +15,11 @@ module regfile (
     logic [31:0] regs [0:31];
 // Write selection from decoder
     logic [31:0] wr_sel;
-// Write enable (except for x0)
-    logic wr_en;
-    assign wr_en = i_rd_wren & (i_rd_addr != 5'b0);
 // x0 is always zero
     assign regs[0] = 32'b0;
 // Decoder 5 to 32
     decoder5to32 u_decoder (
-        .i_en(wr_en),
+        .i_en(i_rd_wren),
         .i_addr(i_rd_addr),
         .o_decoded(wr_sel)
     );
