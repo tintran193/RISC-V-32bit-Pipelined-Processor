@@ -7,7 +7,6 @@ module alu (
 );
     `include "parameter.svh"
 // Adder/Subtractor
-    logic [31:0] adder32_b;
     logic adder32_sub;
     logic [31:0] adder32_result;
     logic adder32_cout;
@@ -19,11 +18,9 @@ module alu (
         endcase
     end
 
-    assign adder32_b = i_op_b ^ {32{adder32_sub}};
-
     adder32 u_adder32 (
         .i_a (i_op_a),
-        .i_b (adder32_b),
+        .i_b (i_op_b),
         .i_sub (adder32_sub),
         .o_sum (adder32_result),
         .o_cout (adder32_cout)
