@@ -7,15 +7,18 @@ module adder32 (
 );
 
     logic [32:0] c;
+    logic [31:0] i_b_xor;
+
     genvar g;
 
     assign c[0] = i_sub;
+    assign i_b_xor = i_b ^ {32{i_sub}};
 
     generate
         for (g = 0; g < 32; g = g + 1) begin : GEN_FA
             full_adder fa (
                 .a (i_a[g]),
-                .b (i_b[g]),
+                .b (i_b_xor[g]),
                 .cin (c[g]),
                 .sum (o_sum[g]),
                 .cout (c[g+1])
