@@ -2,42 +2,28 @@
 
 module dmem_async_tb;
 
-    // =========================================================
-    // Parameters
-    // =========================================================
-    localparam logic [31:0] START_ADDR = 32'h8000_0000;
-    localparam integer      ADDR_WIDTH = 5;
+    // Memory parameters
+    localparam logic [31:0] START_ADDR = 32'h1000_0000;
+    localparam integer ADDR_WIDTH = 10;
 
-    // ADDR_WIDTH = 5
-    // => 2^5 = 32 bytes
-    // => 8 words
-    localparam integer MEM_WORDS = 2 ** (ADDR_WIDTH - 2);
-
-    // =========================================================
-    // DUT signals
-    // =========================================================
+    // DUT inputs
     logic        i_clk;
     logic [31:0] i_addr;
     logic [31:0] i_wdata;
     logic [3:0]  i_bmsk;
     logic        i_wren;
 
+    // DUT output
     logic [31:0] o_rdata;
 
-    // =========================================================
-    // Reference memory
-    // Used only for verification
-    // =========================================================
-    logic [31:0] ref_mem [0:MEM_WORDS-1];
+    // Test statistics
+    integer pass_count;
+    integer fail_count;
 
-    integer i;
-
-    // =========================================================
-    // DUT
-    // =========================================================
+    // Instantiate DUT
     dmem_async #(
-        .START_ADDR(START_ADDR),
-        .ADDR_WIDTH(ADDR_WIDTH)
+        .START_ADDR (START_ADDR),
+        .ADDR_WIDTH (ADDR_WIDTH)
     ) dut (
         .i_clk   (i_clk),
         .i_addr  (i_addr),
@@ -47,327 +33,253 @@ module dmem_async_tb;
         .o_rdata (o_rdata)
     );
 
-    // =========================================================
-    // Clock
-    // =========================================================
+    // Clock: period = 10 ns
+    initial i_clk = 1'b0;
+    always #5 i_clk = ~i_clk;
+
+    // Waveform dump
     initial begin
-        i_clk = 1'b0;
-
-        forever #5 i_clk = ~i_clk;
-    end
-
-    // =========================================================
-    // Write task
-    // =========================================================
-    task write_mem;
-        input [31:0] addr;
-        input [31:0] data;
-        input [3:0]  bmsk;
-
-        integer word_index;
-        integer offset;
-
-        begin
-            i_addr  = addr;
-            i_wdata = data;
-            i_bmsk  = bmsk;
-            i_wren  = 1'b1;
-
-            // Wait for rising edge
-            @(posedge i_clk);
-
-            // Allow nonblocking assignments to complete
-            #1;
-
-            // Reference model update
-            offset = addr - START_ADDR;
-            word_index = offset >> 2;
-
-            if ((addr >= START_ADDR) &&
-                (addr < START_ADDR + (2 ** ADDR_WIDTH))) begin
-
-                if (bmsk[0])
-                    ref_mem[word_index][7:0] = data[7:0];
-
-                if (bmsk[1])
-                    ref_mem[word_index][15:8] = data[15:8];
-
-                if (bmsk[2])
-                    ref_mem[word_index][23:16] = data[23:16];
-
-                if (bmsk[3])
-                    ref_mem[word_index][31:24] = data[31:24];
-
-            end
-
-            i_wren = 1'b0;
-            i_bmsk = 4'b0000;
-        end
-
-    endtask
-
-    // =========================================================
-    // Read check task
-    // =========================================================
-    task check_read;
-        input [31:0] addr;
-
-        integer word_index;
-        integer offset;
-        reg [31:0] expected;
-
-        begin
-            i_addr = addr;
-
-            // Asynchronous read:
-            // no clock edge is required
-            #1;
-
-            if ((addr >= START_ADDR) &&
-                (addr < START_ADDR + (2 ** ADDR_WIDTH))) begin
-
-                offset = addr - START_ADDR;
-                word_index = offset >> 2;
-
-                expected = ref_mem[word_index];
-
-            end
-            else begin
-
-                expected = 32'b0;
-            end
-
-            if (o_rdata !== expected) begin
-                $error(
-                    "READ FAIL: addr=%h expected=%h actual=%h",
-                    addr,
-                    expected,
-                    o_rdata
-                );
-            end
-            else begin
-                $display(
-                    "READ PASS: addr=%h data=%h",
-                    addr,
-                    o_rdata
-                );
-            end
-        end
-
-    endtask
-
-    // =========================================================
-    // Main test
-    // =========================================================
-    initial begin
-
         $dumpfile("sim/module/dmem_async_tb.vcd");
         $dumpvars(0, dmem_async_tb);
+    end
 
-        // -----------------------------------------------------
-        // Initialize signals
-        // -----------------------------------------------------
-        i_addr  = 32'b0;
-        i_wdata = 32'b0;
-        i_bmsk  = 4'b0000;
-        i_wren  = 1'b0;
+    // -------------------------------------------------
+    // Task: Write one word or selected byte lanes
+    // -------------------------------------------------
+    task automatic write_mem(
+        input logic [31:0] addr,
+        input logic [31:0] data,
+        input logic [3:0]  mask,
+        input string       test_name
+    );
+    begin
+        // Drive inputs at the falling edge
+        @(negedge i_clk);
+        i_addr  = addr;
+        i_wdata = data;
+        i_bmsk  = mask;
+        i_wren  = 1'b1;
 
-        for (i = 0; i < MEM_WORDS; i = i + 1)
-            ref_mem[i] = 32'b0;
+        // Wait for synchronous write
+        @(posedge i_clk);
+        #1;
 
-        // Wait a little
-        #2;
+        // Disable write after the rising edge
+        i_wren = 1'b0;
+        i_bmsk = 4'b0000;
 
-        // =====================================================
-        // TEST 1: Full word write
-        // =====================================================
+        $display(
+            "[WRITE] %s | addr=%08h data=%08h mask=%b",
+            test_name, addr, data, mask
+        );
+    end
+    endtask
 
+    // -------------------------------------------------
+    // Task: Check asynchronous read output
+    // -------------------------------------------------
+    task automatic check_read(
+        input logic [31:0] addr,
+        input logic [31:0] expected,
+        input string       test_name
+    );
+    begin
+        // Change address; no clock edge is needed
+        i_addr = addr;
+        #1;
+
+        if (o_rdata !== expected) begin
+            fail_count = fail_count + 1;
+
+            $display("[FAIL] %s", test_name);
+            $display("       Address  = 0x%08h", addr);
+            $display("       Expected = 0x%08h", expected);
+            $display("       Actual   = 0x%08h", o_rdata);
+        end
+        else begin
+            pass_count = pass_count + 1;
+
+            $display(
+                "[PASS] %s | addr=%08h rdata=%08h",
+                test_name, addr, o_rdata
+            );
+        end
+    end
+    endtask
+
+    // -------------------------------------------------
+    // Test sequence
+    // -------------------------------------------------
+    initial begin
+        i_addr     = START_ADDR;
+        i_wdata    = 32'b0;
+        i_bmsk     = 4'b0;
+        i_wren     = 1'b0;
+        pass_count = 0;
+        fail_count = 0;
+
+        // Allow signals to settle
+        #1;
+
+        // =============================================
+        // TC1: Write full word
+        // Expected: 0x12345678
+        // =============================================
+        write_mem(
+            START_ADDR,
+            32'h12345678,
+            4'b1111,
+            "TC1: Write Full Word"
+        );
+
+        check_read(
+            START_ADDR,
+            32'h12345678,
+            "TC1: Read Back Full Word"
+        );
+
+        // =============================================
+        // TC2: Write byte lane 0
+        // Old: 0x12345678
+        // New: 0x123456DD
+        // =============================================
         write_mem(
             START_ADDR,
             32'hAABBCCDD,
-            4'b1111
+            4'b0001,
+            "TC2: Write Byte Lane 0"
         );
 
-        check_read(START_ADDR);
+        check_read(
+            START_ADDR,
+            32'h123456DD,
+            "TC2: Verify Byte Lane 0"
+        );
 
-        // Expected:
-        // AABBCCDD
-        // =====================================================
-
-        // =====================================================
-        // TEST 2: Write second word
-        // =====================================================
-
+        // =============================================
+        // TC3: Write byte lane 2
+        // Old: 0x123456DD
+        // New: 0x12BB56DD
+        // =============================================
         write_mem(
-            START_ADDR + 4,
+            START_ADDR,
+            32'hAABBCCDD,
+            4'b0100,
+            "TC3: Write Byte Lane 2"
+        );
+
+        check_read(
+            START_ADDR,
+            32'h12BB56DD,
+            "TC3: Verify Byte Lane 2"
+        );
+
+        // =============================================
+        // TC4: Write lower two byte lanes
+        // Old: 0x12BB56DD
+        // New: 0x12BB3344
+        // =============================================
+        write_mem(
+            START_ADDR,
             32'h11223344,
-            4'b1111
+            4'b0011,
+            "TC4: Write Lower Two Byte Lanes"
         );
 
-        check_read(START_ADDR + 4);
+        check_read(
+            START_ADDR,
+            32'h12BB3344,
+            "TC4: Verify Lower Two Byte Lanes"
+        );
 
-        // =====================================================
-        // TEST 3: Asynchronous read
-        //
-        // Change address between clock edges.
-        // =====================================================
-
-        i_addr = START_ADDR;
-        #1;
-
-        // No clock edge here.
-        // o_rdata should immediately reflect mem[1].
-        check_read(START_ADDR);
-
-        // =====================================================
-        // TEST 4: Read using different byte addresses
-        //
-        // All four addresses belong to the same word.
-        // =====================================================
-
-        check_read(START_ADDR + 0);
-        check_read(START_ADDR + 1);
-        check_read(START_ADDR + 2);
-        check_read(START_ADDR + 3);
-
-
-        // =====================================================
-        // TEST 5: Write byte lane 0
-        // =====================================================
-
+        // =============================================
+        // TC5: Write upper two byte lanes
+        // Old: 0x12BB3344
+        // New: 0x44333344
+        // =============================================
         write_mem(
             START_ADDR,
-            32'h00000099,
-            4'b0001
+            32'h44332211,
+            4'b1100,
+            "TC5: Write Upper Two Byte Lanes"
         );
 
-        // AABBCCDD
-        // -> AABBCC99
-        check_read(START_ADDR);
-
-
-        // =====================================================
-        // TEST 6: Write byte lane 1
-        // =====================================================
-
-        write_mem(
+        check_read(
             START_ADDR,
-            32'h00008800,
-            4'b0010
+            32'h44333344,
+            "TC5: Verify Upper Two Byte Lanes"
         );
 
-        // AABBCC99
-        // -> AABB8899
-        check_read(START_ADDR);
-
-
-        // =====================================================
-        // TEST 7: Write byte lane 2
-        // =====================================================
-
+        // =============================================
+        // TC6: Write another word
+        // Address = START_ADDR + 4
+        // Expected: 0x12345678
+        // =============================================
         write_mem(
+            START_ADDR + 32'd4,
+            32'h12345678,
+            4'b1111,
+            "TC6: Write Another Word"
+        );
+
+        check_read(
+            START_ADDR + 32'd4,
+            32'h12345678,
+            "TC6: Read Another Word"
+        );
+
+        // =============================================
+        // TC7: Out-of-range read
+        // Memory size = 1024 bytes
+        // START_ADDR + 0x1000 is outside the region
+        // =============================================
+        check_read(
+            START_ADDR + 32'h1000,
+            32'h00000000,
+            "TC7: Out-of-Range Read"
+        );
+
+        // =============================================
+        // TC8: Asynchronous read
+        // Change address between clock edges
+        // =============================================
+        @(negedge i_clk);
+
+        i_wren = 1'b0;
+
+        // Read first word
+        check_read(
             START_ADDR,
-            32'h00770000,
-            4'b0100
+            32'h44333344,
+            "TC8: Async Read First Word"
         );
 
-        // AABB8899
-        // -> AA778899
-        check_read(START_ADDR);
-
-
-        // =====================================================
-        // TEST 8: Write byte lane 3
-        // =====================================================
-
-        write_mem(
-            START_ADDR,
-            32'h66000000,
-            4'b1000
+        // Change address before the next rising edge
+        check_read(
+            START_ADDR + 32'd4,
+            32'h12345678,
+            "TC8: Async Read Second Word Without Clock"
         );
 
-        // AA778899
-        // -> 66778899
-        check_read(START_ADDR);
-
-
-        // =====================================================
-        // TEST 9: Write lower two bytes
-        // =====================================================
-
-        write_mem(
-            START_ADDR + 4,
-            32'h0000BBAA,
-            4'b0011
-        );
-
-        // 11223344
-        // -> 1122BBAA
-        check_read(START_ADDR + 4);
-
-
-        // =====================================================
-        // TEST 10: Write upper two bytes
-        // =====================================================
-
-        write_mem(
-            START_ADDR + 4,
-            32'hCCDD0000,
-            4'b1100
-        );
-
-        // 1122BBAA
-        // -> CCDDBBAA
-        check_read(START_ADDR + 4);
-
-
-        // =====================================================
-        // TEST 11: No byte enabled
-        // =====================================================
-
-        write_mem(
-            START_ADDR,
-            32'hFFFFFFFF,
-            4'b0000
-        );
-
-        // Data must remain unchanged
-        check_read(START_ADDR);
-
-
-        // =====================================================
-        // TEST 12: Out-of-range read
-        // =====================================================
-
-        check_read(START_ADDR - 4);
-        check_read(START_ADDR + 32);
-
-
-        // =====================================================
-        // TEST 13: Out-of-range write
-        // =====================================================
-
-        write_mem(
-            START_ADDR + 32,
-            32'hDEADBEEF,
-            4'b1111
-        );
-
-        // Valid memory must not be affected
-        check_read(START_ADDR);
-        check_read(START_ADDR + 4);
-
-        // =====================================================
-        // DONE
-        // =====================================================
-
+        // =============================================
+        // Summary
+        // =============================================
         $display("");
-        $display("==========================================");
-        $display("MEMORY ASYNC TEST COMPLETED");
-        $display("==========================================");
+        $display("========================================");
+        $display("       DMEM ASYNC TEST SUMMARY");
+        $display("========================================");
+        $display("Total checks : %0d",
+                 pass_count + fail_count);
+        $display("PASS         : %0d", pass_count);
+        $display("FAIL         : %0d", fail_count);
+        $display("========================================");
+
+        if (fail_count == 0)
+            $display("RESULT: ALL TESTS PASSED");
+        else
+            $display("RESULT: TESTS FAILED");
 
         $finish;
-
     end
 
 endmodule

@@ -1,6 +1,6 @@
 module dmem_sync #(
-    parameter logic [31:0] STRT_ADDR = 32'h8000_0000,
-    parameter integer ADDR_WIDTH = 5
+    parameter logic [31:0] START_ADDR = 32'h1000_0000,
+    parameter integer ADDR_WIDTH = 10
 ) (
     input logic i_clk,
     input logic  [31:0] i_addr,
@@ -20,10 +20,10 @@ module dmem_sync #(
     logic        valid_addr;
 
     // Address calculation
-    assign offset_addr = i_addr - STRT_ADDR;
+    assign offset_addr = i_addr - START_ADDR;
     assign valid_addr =
-        (i_addr >= STRT_ADDR) &&
-        (i_addr < STRT_ADDR + (2 ** ADDR_WIDTH));
+        (i_addr >= START_ADDR) &&
+        (i_addr < START_ADDR + (2 ** ADDR_WIDTH));
     
     // Word index
     generate
@@ -40,6 +40,8 @@ module dmem_sync #(
     always_ff @(posedge i_clk) begin
         if (i_rden && valid_addr) begin
             o_rdata <= mem[word_index];
+        end else begin
+            o_rdata = 32'b0;
         end
     end
 
