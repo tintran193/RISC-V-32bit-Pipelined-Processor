@@ -1,98 +1,143 @@
 `timescale 1ns/1ps
 
-module adder_tb;
+module adder32_tb;
 
-    // Testbench signals
-    logic        cin;
-    logic [31:0] operand_a;
-    logic [31:0] operand_b;
+    // DUT input signals
+    logic        i_sub;
+    logic [31:0] i_a;
+    logic [31:0] i_b;
 
-    logic [31:0] sum;
-    logic        cout;
+    // DUT output signals
+    logic [31:0] o_sum;
+    logic        o_cout;
 
-    // Instantiate DUT (Device Under Test)
-    adder dut (
-        .cin      (cin),
-        .operand_a(operand_a),
-        .operand_b(operand_b),
-        .sum      (sum),
-        .cout     (cout)
+    // Expected result: {carry_out, sum}
+    logic [32:0] expected;
+
+    integer pass_count;
+    integer fail_count;
+    integer k;
+
+    // Instantiate DUT
+    adder32 dut (
+        .i_a    (i_a),
+        .i_b    (i_b),
+        .i_sub  (i_sub),
+        .o_sum  (o_sum),
+        .o_cout (o_cout)
     );
 
     // Waveform dump
     initial begin
-        $dumpfile("sim/module/adder_tb.vcd");
-        $dumpvars(0, adder_tb);
+        $dumpfile("sim/module/adder32_tb.vcd");
+        $dumpvars(0, adder32_tb);
     end
 
-    // Test cases
+    // Run one test case and check the result
+    task automatic check_case (
+        input logic [31:0] a,
+        input logic [31:0] b,
+        input logic        sub,
+        input string       test_name
+    );
+    begin
+        // Apply inputs
+        i_a   = a;
+        i_b   = b;
+        i_sub = sub;
+
+        // Calculate expected result
+        if (sub == 1'b0) begin
+            // ADD: A + B
+            expected = {1'b0, a} + {1'b0, b};
+        end
+        else begin
+            // SUB: A - B = A + ~B + 1
+            expected = {1'b0, a} + {1'b0, ~b} + 33'd1;
+        end
+
+        // Wait for combinational logic to settle
+        #10;
+
+        // Check sum and carry-out
+        if ({o_cout, o_sum} !== expected) begin
+            fail_count = fail_count + 1;
+
+            $display("[FAIL] %s", test_name);
+            $display("       A        = 0x%08h", a);
+            $display("       B        = 0x%08h", b);
+            $display("       i_sub    = %b", sub);
+            $display("       Expected = 0x%09h", expected);
+            $display("       Actual   = 0x%09h",
+                     {o_cout, o_sum});
+        end
+        else begin
+            pass_count = pass_count + 1;
+
+            $display("[PASS] %s | A=%08h B=%08h sub=%b result=%09h",
+                     test_name, a, b, sub, {o_cout, o_sum});
+        end
+    end
+    endtask
+
+    // Test sequence
     initial begin
-        // Initialize
-        cin      = 0;
-        operand_a = 0;
-        operand_b = 0;
+        i_a        = 32'b0;
+        i_b        = 32'b0;
+        i_sub      = 1'b0;
+        pass_count = 0;
+        fail_count = 0;
 
-        #10;
+        // ========================================
+        // ADD TESTS
+        // ========================================
 
-        // Test 1: 0 + 0 + 0
-        operand_a = 32'h00000000;
-        operand_b = 32'h00000000;
-        cin       = 1'b0;
+        check_case(
+            32'h00000001, 32'h00000002, 1'b0,
+            "ADD: 1 + 2"
+        );
 
-        #10;
-        $display("Test 1: A=%h B=%h Cin=%b -> Sum=%h Cout=%b",
-                 operand_a, operand_b, cin, sum, cout);
+        check_case(
+            32'hFFFFFFFF, 32'h00000001, 1'b0,
+            "ADD: Carry out"
+        );
 
-        // Test 2: 1 + 2 + 0 = 3
-        operand_a = 32'h00000001;
-        operand_b = 32'h00000002;
-        cin       = 1'b0;
+        // ========================================
+        // SUB TESTS
+        // ========================================
 
-        #10;
-        $display("Test 2: A=%h B=%h Cin=%b -> Sum=%h Cout=%b",
-                 operand_a, operand_b, cin, sum, cout);
+        check_case(
+            32'h00000005, 32'h00000003, 1'b1,
+            "SUB: 5 - 3"
+        );
 
-        // Test 3: 0xFFFFFFFF + 1 = 0x00000000, Cout = 1
-        operand_a = 32'hFFFFFFFF;
-        operand_b = 32'h00000001;
-        cin       = 1'b0;
+        check_case(
+            32'h00000003, 32'h00000005, 1'b1,
+            "SUB: 3 - 5, borrow"
+        );
 
-        #10;
-        $display("Test 3: A=%h B=%h Cin=%b -> Sum=%h Cout=%b",
-                 operand_a, operand_b, cin, sum, cout);
+        check_case(
+            32'hFFFFFFFF, 32'hFFFFFFFF, 1'b1,
+            "SUB: Equal operands"
+        );
 
-        // Test 4: 0xFFFFFFFF + 0 + 1
-        operand_a = 32'hFFFFFFFF;
-        operand_b = 32'h00000000;
-        cin       = 1'b1;
+        // ========================================
+        // SUMMARY
+        // ========================================
 
-        #10;
-        $display("Test 4: A=%h B=%h Cin=%b -> Sum=%h Cout=%b",
-                 operand_a, operand_b, cin, sum, cout);
+        $display("");
+        $display("======================================");
+        $display("         ADDER32 TEST SUMMARY");
+        $display("======================================");
+        $display("Total tests : %0d", pass_count + fail_count);
+        $display("PASS        : %0d", pass_count);
+        $display("FAIL        : %0d", fail_count);
+        $display("======================================");
 
-        // Test 5: 0x7FFFFFFF + 1
-        operand_a = 32'h7FFFFFFF;
-        operand_b = 32'h00000001;
-        cin       = 1'b0;
-
-        #10;
-        $display("Test 5: A=%h B=%h Cin=%b -> Sum=%h Cout=%b",
-                 operand_a, operand_b, cin, sum, cout);
-
-        // Test 6: 0x12345678 + 0x87654321
-        operand_a = 32'h12345678;
-        operand_b = 32'h87654321;
-        cin       = 1'b0;
-
-        #10;
-        $display("Test 6: A=%h B=%h Cin=%b -> Sum=%h Cout=%b",
-                 operand_a, operand_b, cin, sum, cout);
-
-        #10;
-
-        $display("========================================");
-        $display("All tests completed.");
-        $display("========================================");
+        if (fail_count == 0)
+            $display("RESULT: ALL TESTS PASSED");
+        else
+            $display("RESULT: TESTS FAILED");
 
         $finish;
     end

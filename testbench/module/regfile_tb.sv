@@ -2,377 +2,348 @@
 
 module regfile_tb;
 
-    // =========================================================
-    // DUT signals
-    // =========================================================
+    // DUT inputs
     logic        i_clk;
     logic        i_rstn;
-
     logic [4:0]  i_rs1_addr;
     logic [4:0]  i_rs2_addr;
-
     logic [4:0]  i_rd_addr;
     logic [31:0] i_rd_data;
     logic        i_rd_wren;
 
+    // DUT outputs
     logic [31:0] o_rs1_data;
     logic [31:0] o_rs2_data;
 
-    integer errors;
-    integer idx;
-    integer addr2;
+    integer pass_count;
+    integer fail_count;
 
-    logic [31:0] expected1;
-    logic [31:0] expected2;
-
-    // =========================================================
+    // =========================================
     // DUT
-    // =========================================================
+    // =========================================
     regfile dut (
         .i_clk       (i_clk),
         .i_rstn      (i_rstn),
-
         .i_rs1_addr  (i_rs1_addr),
         .i_rs2_addr  (i_rs2_addr),
-
         .i_rd_addr   (i_rd_addr),
         .i_rd_data   (i_rd_data),
         .i_rd_wren   (i_rd_wren),
-
         .o_rs1_data  (o_rs1_data),
         .o_rs2_data  (o_rs2_data)
     );
 
-    // =========================================================
-    // Clock: period = 10 ns
-    // =========================================================
+    // Clock period = 10 ns
+    initial i_clk = 1'b0;
+    always #5 i_clk = ~i_clk;
+
+    // Waveform
     initial begin
-        i_clk = 1'b0;
-        forever #5 i_clk = ~i_clk;
-    end
-
-    // =========================================================
-    // Task: write one register
-    //
-    // Drive signals at falling edge.
-    // Register is written at rising edge.
-    // =========================================================
-    task write_reg;
-        input [4:0]  addr;
-        input [31:0] data;
-
-        begin
-            @(negedge i_clk);
-
-            i_rd_addr = addr;
-            i_rd_data = data;
-            i_rd_wren = 1'b1;
-
-            @(posedge i_clk);
-            #1;
-
-            i_rd_wren = 1'b0;
-        end
-    endtask
-
-    // =========================================================
-    // Task: check both read ports
-    //
-    // Read is asynchronous, so no clock edge is required.
-    // =========================================================
-    task check_reads;
-        input [4:0]  addr1;
-        input [31:0] exp1;
-
-        input [4:0]  addr2;
-        input [31:0] exp2;
-
-        begin
-            i_rs1_addr = addr1;
-            i_rs2_addr = addr2;
-
-            #1;
-
-            if (o_rs1_data !== exp1) begin
-                $display(
-                    "FAIL RS1: addr=%0d expected=%h actual=%h",
-                    addr1, exp1, o_rs1_data
-                );
-                errors = errors + 1;
-            end
-
-            if (o_rs2_data !== exp2) begin
-                $display(
-                    "FAIL RS2: addr=%0d expected=%h actual=%h",
-                    addr2, exp2, o_rs2_data
-                );
-                errors = errors + 1;
-            end
-        end
-    endtask
-
-    // =========================================================
-    // Main test
-    // =========================================================
-    initial begin
-
         $dumpfile("sim/module/regfile_tb.vcd");
         $dumpvars(0, regfile_tb);
+    end
 
-        errors = 0;
+    // =========================================
+    // Task: Check both read ports
+    // =========================================
+    task automatic check_pair (
+        input string       test_name,
+        input logic [31:0] expected_rs1,
+        input logic [31:0] expected_rs2
+    );
+    begin
+        if ((o_rs1_data !== expected_rs1) ||
+            (o_rs2_data !== expected_rs2)) begin
 
-        i_rstn     = 1'b1;
+            fail_count = fail_count + 1;
 
-        i_rs1_addr = 5'd0;
-        i_rs2_addr = 5'd0;
-
-        i_rd_addr  = 5'd0;
-        i_rd_data  = 32'b0;
-        i_rd_wren  = 1'b0;
-
-        // =====================================================
-        // TEST 1: Asynchronous active-low reset
-        // =====================================================
-
-        // Select ordinary registers before asserting reset.
-        i_rs1_addr = 5'd1;
-        i_rs2_addr = 5'd31;
-
-        // Assert reset between clock edges.
-        // No rising clock edge occurs before the check.
-        #1;
-        i_rstn = 1'b0;
-
-        #1;
-
-        if ((o_rs1_data !== 32'b0) ||
-            (o_rs2_data !== 32'b0)) begin
-
-            $display(
-                "FAIL RESET: rs1=%h rs2=%h",
-                o_rs1_data, o_rs2_data
-            );
-            errors = errors + 1;
+            $display("[FAIL] %s", test_name);
+            $display("       RS1: expected=%08h actual=%08h",
+                     expected_rs1, o_rs1_data);
+            $display("       RS2: expected=%08h actual=%08h",
+                     expected_rs2, o_rs2_data);
         end
         else begin
-            $display("PASS TEST 1: Asynchronous reset");
+            pass_count = pass_count + 1;
+
+            $display("[PASS] %s", test_name);
+            $display("       RS1=%08h RS2=%08h",
+                     o_rs1_data, o_rs2_data);
         end
+    end
+    endtask
 
-        // Release reset before the next rising edge.
-        i_rstn = 1'b1;
-
-        // =====================================================
-        // TEST 2: Write x1 to x31
-        // =====================================================
-
-        // Each register receives a unique value:
-        // x1  = A5000001
-        // x2  = A5000002
-        // ...
-        // x31 = A500001F
-
-        for (idx = 1; idx < 32; idx = idx + 1) begin
-            write_reg(idx, 32'hA5000000 | idx);
-        end
-
-        $display("PASS TEST 2: Write x1 to x31");
-
-        // =====================================================
-        // TEST 3: Read every register
-        // =====================================================
-
-        for (idx = 0; idx < 32; idx = idx + 1) begin
-
-            addr2 = 31 - idx;
-
-            // Expected data for read port 1
-            if (idx == 0)
-                expected1 = 32'b0;
-            else
-                expected1 = 32'hA5000000 | idx;
-
-            // Expected data for read port 2
-            if (addr2 == 0)
-                expected2 = 32'b0;
-            else
-                expected2 = 32'hA5000000 | addr2;
-
-            check_reads(
-                idx, expected1,
-                addr2, expected2
-            );
-
-        end
-
-        $display("Completed TEST 3: Read all registers");
-
-        // =====================================================
-        // TEST 4: Both read ports access different registers
-        // =====================================================
-
-        check_reads(
-            5'd5,  32'hA5000005,
-            5'd10, 32'hA500000A
-        );
-
-        check_reads(
-            5'd31, 32'hA500001F,
-            5'd1,  32'hA5000001
-        );
-
-        $display("Completed TEST 4: Independent read ports");
-
-        // =====================================================
-        // TEST 5: x0 must always return zero
-        // =====================================================
-
-        // Attempt to write a nonzero value into x0.
-        write_reg(5'd0, 32'hDEADBEEF);
-
-        check_reads(
-            5'd0, 32'b0,
-            5'd0, 32'b0
-        );
-
-        // Verify the attempted write did not affect x5.
-        check_reads(
-            5'd5, 32'hA5000005,
-            5'd0, 32'b0
-        );
-
-        $display("Completed TEST 5: x0 is always zero");
-
-        // =====================================================
-        // TEST 6: Write enable disabled
-        // =====================================================
-
-        // Attempt to change x5 while write enable is low.
+    // =========================================
+    // Task: Write a register at rising edge
+    // =========================================
+    task automatic write_reg (
+        input logic [4:0]  addr,
+        input logic [31:0] data,
+        input logic        write_enable,
+        input string       test_name
+    );
+    begin
+        // Drive inputs before rising edge
         @(negedge i_clk);
 
-        i_rd_addr = 5'd5;
-        i_rd_data = 32'hDEADBEEF;
-        i_rd_wren = 1'b0;
+        i_rd_addr = addr;
+        i_rd_data = data;
+        i_rd_wren = write_enable;
 
+        // Synchronous write
         @(posedge i_clk);
         #1;
 
-        check_reads(
-            5'd5, 32'hA5000005,
-            5'd10, 32'hA500000A
+        $display(
+            "[WRITE] %s | x%0d = %08h | wren=%b",
+            test_name, addr, data, write_enable
         );
 
-        $display("Completed TEST 6: Write disabled");
+        // Disable write after the edge
+        i_rd_wren = 1'b0;
+    end
+    endtask
 
-        // =====================================================
-        // TEST 7: Asynchronous read between clock edges
-        // =====================================================
+    // =========================================
+    // Test sequence
+    // =========================================
+    initial begin
+        // Initialize inputs
+        i_rstn      = 1'b1;
+        i_rs1_addr  = 5'd0;
+        i_rs2_addr  = 5'd0;
+        i_rd_addr   = 5'd0;
+        i_rd_data   = 32'd0;
+        i_rd_wren   = 1'b0;
 
-        @(negedge i_clk);
+        pass_count = 0;
+        fail_count = 0;
 
-        i_rs1_addr = 5'd5;
-        i_rs2_addr = 5'd10;
-
-        // This check occurs before the next rising edge.
+        // Initial asynchronous reset
         #1;
-
-        if ((o_rs1_data !== 32'hA5000005) ||
-            (o_rs2_data !== 32'hA500000A)) begin
-
-            $display(
-                "FAIL ASYNC READ: rs1=%h rs2=%h",
-                o_rs1_data, o_rs2_data
-            );
-            errors = errors + 1;
-        end
-        else begin
-            $display("PASS TEST 7: Asynchronous read");
-        end
-
-        // Change both read addresses again, still before
-        // the next rising clock edge.
-        i_rs1_addr = 5'd31;
-        i_rs2_addr = 5'd1;
-
-        #1;
-
-        if ((o_rs1_data !== 32'hA500001F) ||
-            (o_rs2_data !== 32'hA5000001)) begin
-
-            $display(
-                "FAIL ASYNC ADDRESS CHANGE: rs1=%h rs2=%h",
-                o_rs1_data, o_rs2_data
-            );
-            errors = errors + 1;
-        end
-        else begin
-            $display("PASS: Read data follows address without clock");
-        end
-
-        // =====================================================
-        // TEST 8: Reset clears stored data asynchronously
-        // =====================================================
-
-        @(negedge i_clk);
-        #1;
-
-        // Assert reset before the next rising edge.
         i_rstn = 1'b0;
-
-        i_rs1_addr = 5'd5;
-        i_rs2_addr = 5'd10;
-
-        #1;
-
-        if ((o_rs1_data !== 32'b0) ||
-            (o_rs2_data !== 32'b0)) begin
-
-            $display(
-                "FAIL ASYNC RESET: rs1=%h rs2=%h",
-                o_rs1_data, o_rs2_data
-            );
-            errors = errors + 1;
-        end
-        else begin
-            $display("PASS TEST 8: Reset clears registers asynchronously");
-        end
-
-        // Keep reset active through a rising edge,
-        // then release at a falling edge.
+        #2;
         @(negedge i_clk);
         i_rstn = 1'b1;
 
-        // Verify that previously stored data was cleared.
-        check_reads(
-            5'd5,  32'b0,
-            5'd10, 32'b0
+        // =========================================
+        // TC1: Write and Read x1
+        // x1 = 0x12345678
+        // =========================================
+        write_reg(
+            5'd1,
+            32'h12345678,
+            1'b1,
+            "TC1: Write x1"
         );
 
-        check_reads(
-            5'd31, 32'b0,
-            5'd0,  32'b0
+        i_rs1_addr = 5'd1;
+        i_rs2_addr = 5'd0;
+        #1;
+
+        check_pair(
+            "TC1: Read x1",
+            32'h12345678,
+            32'h00000000
         );
 
-        $display("Completed TEST 8: Reset clears register contents");
+        // =========================================
+        // TC2: Write and Read x31
+        // x31 = 0xAABBCCDD
+        // =========================================
+        write_reg(
+            5'd31,
+            32'hAABBCCDD,
+            1'b1,
+            "TC2: Write x31"
+        );
 
-        // =====================================================
-        // SUMMARY
-        // =====================================================
+        i_rs1_addr = 5'd0;
+        i_rs2_addr = 5'd31;
+        #1;
 
+        check_pair(
+            "TC2: Read x31",
+            32'h00000000,
+            32'hAABBCCDD
+        );
+
+        // =========================================
+        // TC3: Write and Read x0
+        // Write to x0 must be ignored
+        // =========================================
+        write_reg(
+            5'd0,
+            32'hFFFFFFFF,
+            1'b1,
+            "TC3: Attempt Write x0"
+        );
+
+        i_rs1_addr = 5'd0;
+        i_rs2_addr = 5'd0;
+        #1;
+
+        check_pair(
+            "TC3: x0 Always Zero",
+            32'h00000000,
+            32'h00000000
+        );
+
+        // =========================================
+        // TC4: Read Dual Port
+        // x1 = 0x12345678
+        // x31 = 0xAABBCCDD
+        // =========================================
+        i_rs1_addr = 5'd1;
+        i_rs2_addr = 5'd31;
+        #1;
+
+        check_pair(
+            "TC4: Dual Read Ports",
+            32'h12345678,
+            32'hAABBCCDD
+        );
+
+        // =========================================
+        // TC5: Write Enable Disabled
+        // x1 must retain 0x12345678
+        // =========================================
+        write_reg(
+            5'd1,
+            32'h11111111,
+            1'b0,
+            "TC5: Write Enable Disabled"
+        );
+
+        i_rs1_addr = 5'd1;
+        i_rs2_addr = 5'd31;
+        #1;
+
+        check_pair(
+            "TC5: x1 Retains Old Value",
+            32'h12345678,
+            32'hAABBCCDD
+        );
+
+        // =========================================
+        // TC6: Same Register on Both Ports
+        // x3 = 0x87654321
+        // =========================================
+        write_reg(
+            5'd3,
+            32'h87654321,
+            1'b1,
+            "TC6: Write x3"
+        );
+
+        i_rs1_addr = 5'd3;
+        i_rs2_addr = 5'd3;
+        #1;
+
+        check_pair(
+            "TC6: Same Register on Both Ports",
+            32'h87654321,
+            32'h87654321
+        );
+
+        // =========================================
+        // TC7: Asynchronous Read
+        // Change RS1 address from x1 to x3
+        // while clock remains low.
+        // =========================================
+        @(negedge i_clk);
+
+        i_rs1_addr = 5'd1;
+        i_rs2_addr = 5'd3;
+        #1;
+
+        check_pair(
+            "TC7a: Read x1 Before Address Change",
+            32'h12345678,
+            32'h87654321
+        );
+
+        // Change address WITHOUT a rising clock edge
+        i_rs1_addr = 5'd3;
+        #1;
+
+        check_pair(
+            "TC7b: RS1 Updates Without Clock",
+            32'h87654321,
+            32'h87654321
+        );
+
+        // =========================================
+        // Prepare x8 and x16 for reset testcase
+        // =========================================
+        write_reg(
+            5'd8,
+            32'h88888888,
+            1'b1,
+            "Prepare x8 for Reset"
+        );
+
+        write_reg(
+            5'd16,
+            32'h16161616,
+            1'b1,
+            "Prepare x16 for Reset"
+        );
+
+        // =========================================
+        // TC8: Asynchronous Reset
+        // Assert reset between clock edges
+        // =========================================
+        @(negedge i_clk);
+
+        i_rd_wren = 1'b0;
+
+        // Assert reset while clock is low
+        #1;
+        i_rstn = 1'b0;
+        #1;
+
+        // Check x1 and x8
+        i_rs1_addr = 5'd1;
+        i_rs2_addr = 5'd8;
+        #1;
+
+        check_pair(
+            "TC8a: Reset Clears x1 and x8",
+            32'h00000000,
+            32'h00000000
+        );
+
+        // Check x16 and x31
+        i_rs1_addr = 5'd16;
+        i_rs2_addr = 5'd31;
+        #1;
+
+        check_pair(
+            "TC8b: Reset Clears x16 and x31",
+            32'h00000000,
+            32'h00000000
+        );
+
+        // =========================================
+        // Summary
+        // =========================================
         $display("");
         $display("========================================");
-
-        if (errors == 0) begin
-            $display("REGFILE TEST PASSED");
-        end
-        else begin
-            $display("REGFILE TEST FAILED: %0d error(s)", errors);
-            $fatal(1, "Regfile verification failed");
-        end
-
+        $display("          REGFILE TEST SUMMARY");
+        $display("========================================");
+        $display("Total checks : %0d",
+                 pass_count + fail_count);
+        $display("PASS         : %0d", pass_count);
+        $display("FAIL         : %0d", fail_count);
         $display("========================================");
 
-        $finish;
+        if (fail_count == 0)
+            $display("RESULT: ALL TESTS PASSED");
+        else
+            $display("RESULT: TESTS FAILED");
 
+        $finish;
     end
 
 endmodule
