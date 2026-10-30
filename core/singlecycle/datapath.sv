@@ -2,11 +2,14 @@ module datapath (
     input logic i_clk, 
     input logic i_rstn,
     input logic [31:0] i_dmem_rdata,
+    input logic [31:0] i_imem_rdata,
 
+    output logic [31:0] o_imem_addr, // Instruction memory address output
     output logic [31:0] o_dmem_addr,
     output logic [31:0] o_dmem_wdata,
     output logic [3:0]  o_dmem_bmsk,
     output logic        o_dmem_wren,
+
 
 //contronl signals
     input logic pc_sel,
@@ -21,7 +24,7 @@ module datapath (
 
     output logic br_equal,
     output logic br_less,
-    output logic [31:0] i_instr
+    output logic [31:0] o_instr
 );
 
 //Khối PC
@@ -56,15 +59,9 @@ module datapath (
     );
 
 //Khối IMEM 
-    imem #(
-        .START_ADDR(32'h8000_0000),
-        .ADDR_WIDTH(19),
-        .PROGRAMFILE("program.hex") //để tạm
-    ) imem_inst (
-        .i_clk(i_clk),
-        .i_addr(pc),
-        .o_data(i_instr)
-    );
+    assign o_imem_addr = pc;
+    assign i_instr = i_imem_rdata;
+    assign o_instr = i_imem_rdata;
 
 //Khối Regfile
     regfile regfile_inst (
