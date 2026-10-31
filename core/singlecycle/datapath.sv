@@ -27,13 +27,14 @@ module datapath (
     output logic [31:0] o_instr
 );
 
-//Khối PC
+    //Khối PC
 	logic [31:0] pc, pc_next, pc_four;
-	
-	//Khối ALU
+	logic o_cout;
+
+    //Khối ALU
 	logic [31:0] rs1_data, rs2_data, operand_a, operand_b, alu_data, imm;
 	
-	//Khối LSU và WB
+    //Khối LSU và WB
 	logic [31:0] ld_data, wb_data; 
 
 //Khối PC 
@@ -52,10 +53,12 @@ module datapath (
         .o_data(pc_next)
     );
 
-    adder pc_adder (
-        .i_in0(pc),
-        .i_in1(32'd4),
-        .o_data(pc_four)
+    adder32 pc_adder (
+        .i_a(pc),
+        .i_b(32'd4),
+        .i_sub(1'b0),
+        .o_sum(pc_four),
+        .o_cout(o_cout)
     );
 
 //Khối IMEM 

@@ -11,7 +11,8 @@ module controller (
 	output logic o_opb_sel, 
 	output logic [3:0] o_alu_op, 
 	output logic o_dmem_wren, 
-	output logic [1:0] o_wb_sel
+	output logic [1:0] o_wb_sel,
+	output logic o_db_valid
 	
 );
 
@@ -99,115 +100,115 @@ module controller (
 	
 	
 //Control word 
-	logic [14:0] control_word;
+	logic [15:0] control_word;
 	
-	assign {o_pc_sel, o_immgen_sel, o_br_un, o_opa_sel, o_opb_sel, o_alu_op, o_rd_wren, o_dmem_wren, o_wb_sel} = control_word;
+	assign {o_pc_sel, o_immgen_sel, o_br_un, o_opa_sel, o_opb_sel, o_alu_op, o_rd_wren, o_dmem_wren, o_wb_sel, o_db_valid} = control_word;
 	
 	
 	always_comb begin
-		control_word = 15'd0;
+		control_word = 16'd0;
 
 //R_type 	
 		if (add) begin
-			control_word = 15'b0_000_0_0_0_0000_1_0_01;
+			control_word = 16'b0_000_0_0_0_0000_1_0_01_1;
 		end else if (sub) begin
-			control_word = 15'b0_000_0_0_0_0001_1_0_01; 
+			control_word = 16'b0_000_0_0_0_0001_1_0_01_1; 
 		end else if (sll) begin
-			control_word = 15'b0_000_0_0_0_0111_1_0_01; 
+			control_word = 16'b0_000_0_0_0_0111_1_0_01_1; 
 		end else if (slt) begin
-			control_word = 15'b0_000_0_0_0_0010_1_0_01; 
+			control_word = 16'b0_000_0_0_0_0010_1_0_01_1; 
 		end else if (sltu) begin
-			control_word = 15'b0_000_0_0_0_0011_1_0_01;
+			control_word = 16'b0_000_0_0_0_0011_1_0_01_1;
 		end else if (xor_r) begin
-			control_word = 15'b0_000_0_0_0_0100_1_0_01;
+			control_word = 16'b0_000_0_0_0_0100_1_0_01_1;
 		end else if (srl) begin
-			control_word = 15'b0_000_0_0_0_1000_1_0_01;
+			control_word = 16'b0_000_0_0_0_1000_1_0_01_1;
 		end else if (sra) begin
-			control_word = 15'b0_000_0_0_0_1001_1_0_01;
+			control_word = 16'b0_000_0_0_0_1001_1_0_01_1;
 		end else if (or_r) begin
-			control_word = 15'b0_000_0_0_0_0101_1_0_01;
+			control_word = 16'b0_000_0_0_0_0101_1_0_01_1;
 		end else if (and_r) begin
-			control_word = 15'b0_000_0_0_0_0110_1_0_01;
-	
+			control_word = 16'b0_000_0_0_0_0110_1_0_01_1;
+		end
 //Store
 		end else if (sb || sh || sw) begin
-			control_word = 15'b0_001_0_0_1_0000_0_1_xx;
+			control_word = 16'b0_001_0_0_1_0000_0_1_xx_1;
 		
 		
 //I_type 
 		end else if (slli) begin
-			control_word = 15'b0_000_0_0_1_0111_1_0_01;
+			control_word = 16'b0_000_0_0_1_0111_1_0_01_1;
 		end else if (srli) begin
-			control_word = 15'b0_000_0_0_1_1000_1_0_01;
+			control_word = 16'b0_000_0_0_1_1000_1_0_01_1;
 		end else if (srai) begin
-			control_word = 15'b0_000_0_0_1_1001_1_0_01;
+			control_word = 16'b0_000_0_0_1_1001_1_0_01_1;
 		end else if (addi) begin
-			control_word = 15'b0_000_0_0_1_0000_1_0_01;
+			control_word = 16'b0_000_0_0_1_0000_1_0_01_1;
 		end else if (slti) begin
-			control_word = 15'b0_000_0_0_1_0010_1_0_01;
+			control_word = 16'b0_000_0_0_1_0010_1_0_01_1;
 		end else if (sltiu) begin
-			control_word = 15'b0_000_0_0_1_0011_1_0_01;
+			control_word = 16'b0_000_0_0_1_0011_1_0_01_1;
 		end else if (xori) begin
-			control_word = 15'b0_000_0_0_1_0100_1_0_01;
+			control_word = 16'b0_000_0_0_1_0100_1_0_01_1;
 		end else if (ori) begin
-		   control_word = 15'b0_000_0_0_1_0101_1_0_01;
+		   control_word = 16'b0_000_0_0_1_0101_1_0_01_1;
 		end else if (andi) begin
-		   control_word = 15'b0_000_0_0_1_0110_1_0_01;
+		   control_word = 16'b0_000_0_0_1_0110_1_0_01_1;
 	 
 //L_type	 
 		end else if (lb || lh || lw || lbu || lhu) begin
-		   control_word = 15'b0_000_0_0_1_0000_1_0_00;
+		   control_word = 16'b0_000_0_0_1_0000_1_0_00_1;
 		
 //JALR_type 
 		end else if (jalr) begin
-			control_word = 15'b1_000_0_0_1_0000_1_0_10;
+			control_word = 16'b1_000_0_0_1_0000_1_0_10_1;
 		
 //JAL_type		
 		end else if (jal) begin
-			control_word = 15'b1_011_0_1_1_0000_1_0_10;
+			control_word = 16'b1_011_0_1_1_0000_1_0_10_1;
 		
 //U_type 
 		end else if (lui) begin
-			control_word = 15'b0_100_0_x_1_0000_1_0_11;
+			control_word = 16'b0_100_0_x_1_0000_1_0_11_1;
 		end else if (auipc) begin
-			control_word = 15'b0_100_0_1_1_0000_1_0_01;
+			control_word = 16'b0_100_0_1_1_0000_1_0_01_1;
 		
 //B_type		
 		end else if (beq) begin
 			if(i_br_equal) begin
-				control_word = 15'b1_010_0_1_1_0000_0_0_xx;
+				control_word = 16'b1_010_0_1_1_0000_0_0_xx_1;
 			end else begin
-				control_word = 15'b0_010_0_1_1_0000_0_0_xx;
+				control_word = 16'b0_010_0_1_1_0000_0_0_xx_1;
 			end
 		end else if (bne) begin
 			if (!i_br_equal) begin
-				control_word = 15'b1_010_0_1_1_0000_0_0_xx;
+				control_word = 16'b1_010_0_1_1_0000_0_0_xx_1;
 			end else begin
-				control_word = 15'b0_010_0_1_1_0000_0_0_xx;
+				control_word = 16'b0_010_0_1_1_0000_0_0_xx_1;
 			end
 		end else if (blt) begin
 			if (i_br_less || !i_br_equal) begin
-				control_word = 15'b1_010_0_1_1_0000_0_0_xx;
+				control_word = 16'b1_010_0_1_1_0000_0_0_xx_1;
 			end else begin
-				control_word = 15'b0_010_0_1_1_0000_0_0_xx;
+				control_word = 16'b0_010_0_1_1_0000_0_0_xx_1;
 			end
 		end else if (bge) begin
 			if (!i_br_less) begin
-				control_word = 15'b1_010_0_1_1_0000_0_0_xx;
+				control_word = 16'b1_010_0_1_1_0000_0_0_xx_1;
 			end else begin
-				control_word = 15'b0_010_0_1_1_0000_0_0_xx;
+				control_word = 16'b0_010_0_1_1_0000_0_0_xx_1;
 			end
 		end else if (bltu) begin
 			if (i_br_less || !i_br_equal) begin 
-				control_word = 15'b1_010_1_1_1_0000_0_0_xx;
+				control_word = 16'b1_010_1_1_1_0000_0_0_xx_1;
 			end else begin
-				control_word = 15'b0_010_1_1_1_0000_0_0_xx;
+				control_word = 16'b0_010_1_1_1_0000_0_0_xx_1;
 			end
 		end else if (bgeu) begin
 			if (!i_br_less) begin
-				control_word = 15'b1_010_1_1_1_0000_0_0_xx;
+				control_word = 16'b1_010_1_1_1_0000_0_0_xx_1;
 			end else begin
-				control_word = 15'b0_010_1_1_1_0000_0_0_xx;
+				control_word = 16'b0_010_1_1_1_0000_0_0_xx_1;
 			end
 		end 
 	end

@@ -8,7 +8,8 @@ module singlecycle (
     output logic [31:0] o_dmem_addr, // Data memory address output
     output logic [31:0] o_dmem_wdata,
     output logic [3:0]  o_dmem_bmsk,
-    output logic        o_dmem_wren
+    output logic        o_dmem_wren,
+	output logic 		o_db_valid
   
 );
 
@@ -18,7 +19,7 @@ module singlecycle (
     logic [1:0] wb_sel;
     logic br_equal, br_less;
     logic [31:0] instr;
-
+	
 
     datapath dp (
         .i_clk(i_clk),
@@ -59,11 +60,9 @@ module singlecycle (
         .o_opb_sel(opb_sel),
         .o_alu_op(alu_op),
         .o_dmem_wren(dmem_wren),
-        .o_wb_sel(wb_sel)
+        .o_wb_sel(wb_sel),
+		  .o_db_valid(o_db_valid)
     );
 
 
-
-
-
-endmodule
+endmodule 
