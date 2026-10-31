@@ -13,7 +13,6 @@ module controller (
 	output logic o_dmem_wren, 
 	output logic [1:0] o_wb_sel,
 	output logic o_db_valid
-	
 );
 
 
@@ -129,7 +128,7 @@ module controller (
 			control_word = 16'b0_000_0_0_0_0101_1_0_01_1;
 		end else if (and_r) begin
 			control_word = 16'b0_000_0_0_0_0110_1_0_01_1;
-		end
+	
 //Store
 		end else if (sb || sh || sw) begin
 			control_word = 16'b0_001_0_0_1_0000_0_1_xx_1;

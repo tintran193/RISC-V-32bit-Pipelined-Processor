@@ -9,7 +9,7 @@ module singlecycle (
     output logic [31:0] o_dmem_wdata,
     output logic [3:0]  o_dmem_bmsk,
     output logic        o_dmem_wren,
-	output logic 		o_db_valid
+	 output logic 		o_db_valid
   
 );
 

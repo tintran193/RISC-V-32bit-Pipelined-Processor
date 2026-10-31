@@ -13,7 +13,7 @@ module datapath (
 
 //contronl signals
     input logic pc_sel,
-    input logic immgen_sel,
+    input logic [2:0] immgen_sel,
     input logic br_un,
     input logic opa_sel,
     input logic opb_sel,
@@ -27,14 +27,14 @@ module datapath (
     output logic [31:0] o_instr
 );
 
-    //Khối PC
-	logic [31:0] pc, pc_next, pc_four;
+//Khối PC
+	logic [31:0] pc, pc_next, pc_four, i_instr;
 	logic o_cout;
-
-    //Khối ALU
+	
+	//Khối ALU
 	logic [31:0] rs1_data, rs2_data, operand_a, operand_b, alu_data, imm;
 	
-    //Khối LSU và WB
+	//Khối LSU và WB
 	logic [31:0] ld_data, wb_data; 
 
 //Khối PC 
@@ -53,7 +53,7 @@ module datapath (
         .o_data(pc_next)
     );
 
-    adder32 pc_adder (
+   adder32 pc_adder (
         .i_a(pc),
         .i_b(32'd4),
         .i_sub(1'b0),
@@ -64,7 +64,14 @@ module datapath (
 //Khối IMEM 
     assign o_imem_addr = pc;
     assign i_instr = i_imem_rdata;
-    assign o_instr = i_imem_rdata;
+	 
+	 always_comb begin
+		if(!i_rstn) begin
+			o_instr = 32'b0;
+		end else begin
+			o_instr = i_imem_rdata;
+		end
+	 end
 
 //Khối Regfile
     regfile regfile_inst (
