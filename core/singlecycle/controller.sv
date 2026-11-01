@@ -168,7 +168,7 @@ module controller (
 		
 //U_type 
 		end else if (lui) begin
-			control_word = 16'b0_100_0_x_1_0000_1_0_11_1;
+			control_word = 16'b0_100_0_x_1_1010_1_0_01_1;
 		end else if (auipc) begin
 			control_word = 16'b0_100_0_1_1_0000_1_0_01_1;
 		
@@ -186,7 +186,7 @@ module controller (
 				control_word = 16'b0_010_0_1_1_0000_0_0_xx_1;
 			end
 		end else if (blt) begin
-			if (i_br_less || !i_br_equal) begin
+			if (i_br_less && !i_br_equal) begin
 				control_word = 16'b1_010_0_1_1_0000_0_0_xx_1;
 			end else begin
 				control_word = 16'b0_010_0_1_1_0000_0_0_xx_1;
@@ -198,7 +198,7 @@ module controller (
 				control_word = 16'b0_010_0_1_1_0000_0_0_xx_1;
 			end
 		end else if (bltu) begin
-			if (i_br_less || !i_br_equal) begin 
+			if (i_br_less && !i_br_equal) begin 
 				control_word = 16'b1_010_1_1_1_0000_0_0_xx_1;
 			end else begin
 				control_word = 16'b0_010_1_1_1_0000_0_0_xx_1;

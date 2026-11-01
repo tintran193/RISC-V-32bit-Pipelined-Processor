@@ -144,7 +144,7 @@ module datapath (
         .i_in0(ld_data),
         .i_in1(alu_data),
         .i_in2(pc_four),
-        .i_in3(imm),
+        .i_in3(32'b0),
         .i_sel(wb_sel),
         .o_data(wb_data)
     );

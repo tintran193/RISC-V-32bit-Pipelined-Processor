@@ -1,10 +1,10 @@
 module mux4 (
-    logic [31:0] i_in0,
-    logic [31:0] i_in1,
-    logic [31:0] i_in2,
-    logic [31:0] i_in3,
-    logic [1:0] i_sel,
-    logic [31:0] o_data
+    input logic [31:0] i_in0,
+    input logic [31:0] i_in1,
+    input logic [31:0] i_in2,
+    input logic [31:0] i_in3,
+    input logic [1:0] i_sel,
+    output logic [31:0] o_data
 );
 
     always_comb begin

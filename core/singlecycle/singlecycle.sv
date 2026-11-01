@@ -9,17 +9,17 @@ module singlecycle (
     output logic [31:0] o_dmem_wdata,
     output logic [3:0]  o_dmem_bmsk,
     output logic        o_dmem_wren,
-	 output logic 		o_db_valid
+	 output logic 			o_db_valid
   
 );
 
 //Tín hiệu điều khiển
-    logic pc_sel, immgen_sel, br_un, opa_sel, opb_sel, rd_wren, dmem_wren;
+    logic pc_sel, br_un, opa_sel, opb_sel, rd_wren, dmem_wren;
     logic [3:0] alu_op;
     logic [1:0] wb_sel;
     logic br_equal, br_less;
     logic [31:0] instr;
-	
+	 logic [2:0] immgen_sel;
 
     datapath dp (
         .i_clk(i_clk),

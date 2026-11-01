@@ -84,6 +84,11 @@ module alu (
         .o_data (shifter_result)
     );
 
+//Lui 
+	logic [31:0] lui_result;
+		
+	assign lui_result = i_op_b;
+	 
 // Mux
     always_comb begin
         case (i_alu_op)
@@ -97,6 +102,7 @@ module alu (
             SLL: o_alu_data = shifter_result;
             SRL: o_alu_data = shifter_result;
             SRA: o_alu_data = shifter_result;
+			LUI: o_alu_data = lui_result;
             default: o_alu_data = 32'b0;
         endcase
     end

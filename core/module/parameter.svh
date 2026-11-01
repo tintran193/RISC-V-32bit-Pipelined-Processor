@@ -10,4 +10,5 @@
    parameter logic [3:0] SLL  = 4'b0111;
    parameter logic [3:0] SRL  = 4'b1000;
    parameter logic [3:0] SRA  = 4'b1001;
+	parameter logic [3:0] LUI  = 4'b1010;
 `endif
