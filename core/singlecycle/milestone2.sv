@@ -57,7 +57,7 @@ imem #(
     .o_data (imem_core_rdata    )
 );
 
-dmem_async #(
+dmem #(
     .START_ADDR (`DMEM_START_ADDR),
     .ADDR_WIDTH (`DMEM_ADDR_WIDTH)
 ) u_dmem (
