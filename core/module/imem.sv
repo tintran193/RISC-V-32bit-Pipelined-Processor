@@ -1,7 +1,7 @@
 module imem #(
     parameter logic [31:0] START_ADDR = 32'h8000_0000,
     parameter int unsigned ADDR_WIDTH = 19,
-    parameter    PROGRAMFILE = ""
+    parameter  string  PROGRAMFILE = ""
 ) (
     input logic         i_clk,
     input logic [31:0]  i_addr,
