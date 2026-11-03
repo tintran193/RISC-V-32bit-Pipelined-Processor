@@ -21,15 +21,15 @@ module controller (
 
 // Opcode Decoding
     assign RV32 = i_instr[0] & i_instr[1]; // RV = 11
-	assign R_type = (i_instr[6:0] == 7'b0110011) & RV32; //R-type = 0110011
-	assign S_type = (i_instr[6:0] == 7'b0100011) & RV32; //S-type = 0100011
-	assign B_type = (i_instr[6:0] == 7'b1100011) & RV32; //B-type = 1100011
-	assign I_type = (i_instr[6:0] == 7'b0010011) & RV32; //I-type = 0010011
-	assign I_load_type = (i_instr[6:0] == 7'b0000011) & RV32; //I-type (load) = 0000011
-	assign JALR_type = (i_instr[6:0] == 7'b1100111) & RV32; //JALR = 1100111
-	assign J_type = (i_instr[6:0] == 7'b1101111) & RV32; //J-type = 1101111
-	assign LUI_type = (i_instr[6:0] == 7'b0110111) & RV32; //LUI = 0110111
-	assign AUIPC_type = (i_instr[6:0] == 7'b0010111) & RV32; //AUIPC = 0010111
+	assign R_type = (i_instr[6:2] == 7'b01100) & RV32; //R-type = 0110011
+	assign S_type = (i_instr[6:2] == 7'b01000) & RV32; //S-type = 0100011
+	assign B_type = (i_instr[6:2] == 7'b11000) & RV32; //B-type = 1100011
+	assign I_type = (i_instr[6:2] == 7'b00100) & RV32; //I-type = 0010011
+	assign I_load_type = (i_instr[6:2] == 7'b00000) & RV32; //I-type (load) = 0000011
+	assign JALR_type = (i_instr[6:2] == 7'b11001) & RV32; //JALR = 1100111
+	assign J_type = (i_instr[6:2] == 7'b11011) & RV32; //J-type = 1101111
+	assign LUI_type = (i_instr[6:2] == 7'b01101) & RV32; //LUI = 0110111
+	assign AUIPC_type = (i_instr[6:2] == 7'b00101) & RV32; //AUIPC = 0010111
 
  // Function Decoding
     logic add, sub, sll, slt, sltu, xor_r, srl, sra, or_r, and_r ; 
@@ -63,40 +63,40 @@ module controller (
 	assign and_r   = funct7_normal & (i_instr[14:12] == 3'b111) & R_type;
 
     //S_type 
-	assign sb = ~i_instr[14] & ~i_instr[13] & ~i_instr[12] & S_type; 
-	assign sh = ~i_instr[14] & ~i_instr[13] &  i_instr[12] & S_type; 
-	assign sw = ~i_instr[14] &  i_instr[13] & ~i_instr[12] & S_type; 
+	assign sb = (i_instr[14:12] == 3'b000) & S_type; 
+	assign sh = (i_instr[14:12] == 3'b001) & S_type; 
+	assign sw = (i_instr[14:12] == 3'b010) & S_type; 
 	
     //B_type 
-	assign beq 	= ~i_instr[14] & ~i_instr[13] & ~i_instr[12] & B_type;
-	assign bne	= ~i_instr[14] & ~i_instr[13] &  i_instr[12] & B_type; 
-	assign blt	=  i_instr[14] & ~i_instr[13] & ~i_instr[12] & B_type; 
-	assign bge 	=  i_instr[14] & ~i_instr[13] &  i_instr[12] & B_type; 
-	assign bltu =  i_instr[14] &  i_instr[13] & ~i_instr[12] & B_type; 
-	assign bgeu =  i_instr[14] &  i_instr[13] &  i_instr[12] & B_type; 
+	assign beq 	= (i_instr[14:12] == 3'b000) & B_type;
+	assign bne	= (i_instr[14:12] == 3'b001) & B_type; 
+	assign blt	= (i_instr[14:12] == 3'b100) & B_type; 
+	assign bge 	= (i_instr[14:12] == 3'b101) & B_type; 
+	assign bltu = (i_instr[14:12] == 3'b110) & B_type; 
+	assign bgeu = (i_instr[14:12] == 3'b111) & B_type; 
 	
     //I_type shift 
-	assign slli = funct7_normal &  (i_instr[14:12] = 3'b001) & I_type; 
-	assign srli = funct7_normal &  (i_instr[14:12] = 3'b101) & I_type;
-	assign srai = funct7_sub    &  (i_instr[14:12] = 3'b101) & I_type; 
+	assign slli = funct7_normal &  (i_instr[14:12] == 3'b001) & I_type; 
+	assign srli = funct7_normal &  (i_instr[14:12] == 3'b101) & I_type;
+	assign srai = funct7_sub    &  (i_instr[14:12] == 3'b101) & I_type; 
 	
     //I_type_load  
-	assign lb  = ~i_instr[14] & ~i_instr[13] & ~i_instr[12] & I_load_type; 
-	assign lh  = ~i_instr[14] & ~i_instr[13] &  i_instr[12] & I_load_type; 
-	assign lw  = ~i_instr[14] &  i_instr[13] & ~i_instr[12] & I_load_type; 
-	assign lbu =  i_instr[14] & ~i_instr[13] & ~i_instr[12] & I_load_type; 
-	assign lhu =  i_instr[14] & ~i_instr[13] &  i_instr[12] & I_load_type; 
+	assign lb  = (i_instr[14:12] == 3'b000) & I_load_type; 
+	assign lh  = (i_instr[14:12] == 3'b001) & I_load_type; 
+	assign lw  = (i_instr[14:12] == 3'b010) & I_load_type; 
+	assign lbu = (i_instr[14:12] == 3'b100) & I_load_type; 
+	assign lhu = (i_instr[14:12] == 3'b101) & I_load_type; 
 	
     //I_type 
-	assign addi  = ~i_instr[14] & ~i_instr[13] & ~i_instr[12] & I_type; 
-	assign slti  = ~i_instr[14] &  i_instr[13] & ~i_instr[12] & I_type; 
-	assign sltiu = ~i_instr[14] &  i_instr[13] &  i_instr[12] & I_type; 
-	assign xori  =  i_instr[14] & ~i_instr[13] & ~i_instr[12] & I_type; 
-	assign ori   =  i_instr[14] &  i_instr[13] & ~i_instr[12] & I_type; 
-	assign andi  =  i_instr[14] &  i_instr[13] &  i_instr[12] & I_type; 
+	assign addi  = (i_instr[14:12] == 3'b000) & I_type; 
+	assign slti  = (i_instr[14:12] == 3'b010) & I_type; 
+	assign sltiu = (i_instr[14:12] == 3'b011) & I_type; 
+	assign xori  = (i_instr[14:12] == 3'b100) & I_type; 
+	assign ori   = (i_instr[14:12] == 3'b110) & I_type; 
+	assign andi  = (i_instr[14:12] == 3'b111) & I_type; 
 	
     //JALR
-	assign jalr = ~i_instr[14] & ~i_instr[13] & ~i_instr[12] & JALR_type;
+	assign jalr = (i_instr[14:12] == 3'b000) & JALR_type;
 
     //J_type 
 	assign jal  = J_type; 
