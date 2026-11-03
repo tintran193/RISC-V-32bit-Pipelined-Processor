@@ -14,6 +14,11 @@
     `define DMEM_ADDR_WIDTH 16
 `endif
 
+`ifndef PROGRAMFILE
+    `define PROGRAMFILE "program.hex"
+`endif
+
+
 module milestone2 (
     input  logic        i_clk         ,
     input  logic        i_rstn        ,
