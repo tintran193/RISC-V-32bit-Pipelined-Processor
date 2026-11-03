@@ -10,7 +10,9 @@ module comparator4_cascade (
     output logic o_lt,
     output logic o_gt
 );
+    logic local_eq, local_lt, local_gt;
     logic local_eq3, local_eq2, local_eq1, local_eq0;
+    
     assign local_eq3 = ~(a[3] ^ b[3]);
     assign local_eq2 = ~(a[2] ^ b[2]);
     assign local_eq1 = ~(a[1] ^ b[1]);

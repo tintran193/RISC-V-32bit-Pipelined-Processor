@@ -57,7 +57,7 @@ imem #(
     .o_data (imem_core_rdata    )
 );
 
-dmem_async #(
+dmem #(
     .START_ADDR (`DMEM_START_ADDR),
     .ADDR_WIDTH (`DMEM_ADDR_WIDTH)
 ) u_dmem (
@@ -77,4 +77,3 @@ assign o_halt         = core_dmem_wren && core_dmem_bmsk[0] && (core_dmem_addr =
 assign o_db_valid     = core_db_valid;
 
 endmodule
-
