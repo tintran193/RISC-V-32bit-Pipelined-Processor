@@ -1,13 +1,13 @@
 module lsu (
     input logic [2:0] i_funct3,
     input logic [31:0] i_addr, //From alu
-    input logic [31:0] i_wdata,
-    input logic [31:0] i_rdata,
-    input logic i_wren,
+    input logic [31:0] i_wdata, //Rs2 data from regfile
+    input logic [31:0] i_rdata, //Data from dmem
+    input logic i_wren, //From controller
 
-    output logic [31:0] o_ld_data,
+    output logic [31:0] o_ld_data, //Write back to regfile 
     output logic [31:0] o_dmem_addr,
-    output logic [31:0] o_dmem_wdata,
+    output logic [31:0] o_dmem_wdata, //Data to dmem
     output logic [3:0] o_dmem_bmsk,
     output logic o_dmem_wren
 

@@ -5,7 +5,7 @@ module imem #(
 )(
     input logic i_clk,
     input logic [31:0] i_addr,
-    output logic [31:0] = o_data;
+    output logic [31:0] o_data
 );
     localparam int unsigned INDEX_WIDTH = ADDR_WIDTH - 2;
     localparam int unsigned MEM_SIZE = 1 << ADDR_WIDTH;
