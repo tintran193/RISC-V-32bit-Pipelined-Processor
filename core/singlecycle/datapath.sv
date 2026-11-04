@@ -28,7 +28,7 @@ module datapath (
 );
 
 //PC signals
-	logic [31:0] pc, pc_next, pc_four, instr;
+	logic [31:0] pc, pc_next, pc_four, pc_target, instr;
 	logic pc_cout;
 //RegFile signals
 	logic [31:0] rs1_data, rs2_data; 
@@ -39,6 +39,18 @@ module datapath (
 //LSU and WB signals
 	logic [31:0] ld_data, wb_data; 
 
+//IMEM block  
+	always_comb begin
+		if(!i_rstn) begin
+			instr = 32'b0;
+		end else begin
+			instr = i_imem_rdata;
+		end
+	end
+
+    assign o_instr = instr;
+    assign o_imem_addr = pc;
+
 // PC block 
     always_ff @(posedge i_clk or negedge i_rstn) begin
         if(!i_rstn) begin
@@ -48,9 +60,17 @@ module datapath (
         end
     end
 
+    always_comb begin
+        if (instr[6:0] == 7'b1100111) begin
+            pc_target = {alu_data[31:1], 1'b0}; // JALR instruction
+        end else begin
+            pc_target = alu_data; // Other instructions
+        end
+    end
+
    mux2 pc_mux (
         .i_in0(pc_four),
-        .i_in1(alu_data),
+        .i_in1(pc_target),
         .i_sel(i_pc_sel),
         .o_data(pc_next)
     );
@@ -62,19 +82,6 @@ module datapath (
         .o_sum(pc_four),
         .o_cout(pc_cout)
     );
-
-//IMEM block 
-    assign o_imem_addr = pc;
-	 
-	always_comb begin
-		if(!i_rstn) begin
-			instr = 32'b0;
-		end else begin
-			instr = i_imem_rdata;
-		end
-	end
-
-    assign o_instr = instr;
 
 //Regfile block
     regfile u_regfile (

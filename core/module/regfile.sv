@@ -37,13 +37,13 @@ module regfile (
         end
     endgenerate
 // Read port 1
-    mux32to1 u_mux32to1_rs1 (
+    mux32 u_mux32_rs1 (
         .i_data(regs),
         .i_sel(i_rs1_addr),
         .o_data(o_rs1_data)
     );
 // Read port 2
-    mux32to1 u_mux32to1_rs2 (
+    mux32 u_mux32_rs2 (
         .i_data(regs),
         .i_sel(i_rs2_addr),
         .o_data(o_rs2_data) 
