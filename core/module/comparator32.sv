@@ -8,7 +8,7 @@ module comparator32 (
 );
     logic [6:0] c_eq, c_lt, c_gt;
 
-    comparator4_cascade cmp0 (
+    comparator4 cmp0 (
         .a (i_a[3:0]),
         .b (i_b[3:0]),
         .i_eq (1'b1),
@@ -19,7 +19,7 @@ module comparator32 (
         .o_gt (c_gt[0])
     );
 
-    comparator4_cascade cmp1 (
+    comparator4 cmp1 (
         .a (i_a[7:4]),
         .b (i_b[7:4]),
         .i_eq (c_eq[0]),
@@ -30,7 +30,7 @@ module comparator32 (
         .o_gt (c_gt[1])
     );
 
-    comparator4_cascade cmp2 (
+    comparator4 cmp2 (
         .a (i_a[11:8]),
         .b (i_b[11:8]),
         .i_eq (c_eq[1]),
@@ -41,7 +41,7 @@ module comparator32 (
         .o_gt (c_gt[2])
     );
 
-    comparator4_cascade cmp3 (
+    comparator4 cmp3 (
         .a (i_a[15:12]),
         .b (i_b[15:12]),
         .i_eq (c_eq[2]),
@@ -52,7 +52,7 @@ module comparator32 (
         .o_gt (c_gt[3])
     );
 
-    comparator4_cascade cmp4 (
+    comparator4 cmp4 (
         .a (i_a[19:16]),
         .b (i_b[19:16]),
         .i_eq (c_eq[3]),
@@ -63,7 +63,7 @@ module comparator32 (
         .o_gt (c_gt[4])
     );
 
-    comparator4_cascade cmp5 (
+    comparator4 cmp5 (
         .a (i_a[23:20]),
         .b (i_b[23:20]),
         .i_eq (c_eq[4]),
@@ -74,7 +74,7 @@ module comparator32 (
         .o_gt (c_gt[5])
     );
 
-    comparator4_cascade cmp6 (
+    comparator4 cmp6 (
         .a (i_a[27:24]),
         .b (i_b[27:24]),
         .i_eq (c_eq[5]),
@@ -85,7 +85,7 @@ module comparator32 (
         .o_gt (c_gt[6])
     );
 
-    comparator4_cascade cmp7 (
+    comparator4 cmp7 (
         .a (i_a[31:28]),
         .b (i_b[31:28]),
         .i_eq (c_eq[6]),
