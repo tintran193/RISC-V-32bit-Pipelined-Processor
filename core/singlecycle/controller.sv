@@ -1,4 +1,5 @@
 module controller (
+	input logic i_rstn,
     input logic [31:0] i_instr,
     input logic i_br_equal,
     input logic i_br_less,
@@ -21,15 +22,15 @@ module controller (
 
 // Opcode Decoding
     assign RV32 = i_instr[0] & i_instr[1]; // RV = 11
-	assign R_type = (i_instr[6:2] == 7'b01100) & RV32; //R-type = 0110011
-	assign S_type = (i_instr[6:2] == 7'b01000) & RV32; //S-type = 0100011
-	assign B_type = (i_instr[6:2] == 7'b11000) & RV32; //B-type = 1100011
-	assign I_type = (i_instr[6:2] == 7'b00100) & RV32; //I-type = 0010011
-	assign I_load_type = (i_instr[6:2] == 7'b00000) & RV32; //I-type (load) = 0000011
-	assign JALR_type = (i_instr[6:2] == 7'b11001) & RV32; //JALR = 1100111
-	assign J_type = (i_instr[6:2] == 7'b11011) & RV32; //J-type = 1101111
-	assign LUI_type = (i_instr[6:2] == 7'b01101) & RV32; //LUI = 0110111
-	assign AUIPC_type = (i_instr[6:2] == 7'b00101) & RV32; //AUIPC = 0010111
+	assign R_type = (i_instr[6:2] == 5'b01100) & RV32; //R-type = 0110011
+	assign S_type = (i_instr[6:2] == 5'b01000) & RV32; //S-type = 0100011
+	assign B_type = (i_instr[6:2] == 5'b11000) & RV32; //B-type = 1100011
+	assign I_type = (i_instr[6:2] == 5'b00100) & RV32; //I-type = 0010011
+	assign I_load_type = (i_instr[6:2] == 5'b00000) & RV32; //I-type (load) = 0000011
+	assign JALR_type = (i_instr[6:2] == 5'b11001) & RV32; //JALR = 1100111
+	assign J_type = (i_instr[6:2] == 5'b11011) & RV32; //J-type = 1101111
+	assign LUI_type = (i_instr[6:2] == 5'b01101) & RV32; //LUI = 0110111
+	assign AUIPC_type = (i_instr[6:2] == 5'b00101) & RV32; //AUIPC = 0010111
 
  // Function Decoding
     logic add, sub, sll, slt, sltu, xor_r, srl, sra, or_r, and_r ; 
@@ -107,11 +108,14 @@ module controller (
 
 // Control signal
     logic [15:0] control_signal;
+	logic ctrl_db_valid;
     assign {o_pc_sel, o_imm_sel, o_br_un, 
-            o_opa_sel, o_opb_sel, o_alu_op, o_rd_wren, o_mem_wren, o_wb_sel, o_db_valid} = control_signal;
+            o_opa_sel, o_opb_sel, o_alu_op, o_rd_wren, o_mem_wren, o_wb_sel, ctrl_db_valid} = control_signal;
 	
-    always_comb begin
-		control_signal = 16'd0;
+always_comb begin
+	control_signal = 16'd0;
+
+	if (i_rstn) begin	
 //R_type 	
 		if (add) begin
 			control_signal = 16'b0_000_0_0_0_0000_1_0_01_1;
@@ -191,9 +195,9 @@ module controller (
 				control_signal = 16'b0_010_0_1_1_0000_0_0_xx_1;
 			end
 		end else if (blt) begin
-			if (i_br_less && !i_br_equal) begin
+			if (i_br_less) begin
 				control_signal = 16'b1_010_0_1_1_0000_0_0_xx_1;
-			end else begin
+			end else begin // bge
 				control_signal = 16'b0_010_0_1_1_0000_0_0_xx_1;
 			end
 		end else if (bge) begin
@@ -203,7 +207,7 @@ module controller (
 				control_signal = 16'b0_010_0_1_1_0000_0_0_xx_1;
 			end
 		end else if (bltu) begin
-			if (i_br_less && !i_br_equal) begin 
+			if (i_br_less) begin 
 				control_signal = 16'b1_010_1_1_1_0000_0_0_xx_1;
 			end else begin
 				control_signal = 16'b0_010_1_1_1_0000_0_0_xx_1;
@@ -214,8 +218,15 @@ module controller (
 			end else begin
 				control_signal = 16'b0_010_1_1_1_0000_0_0_xx_1;
 			end
-		end else begin // Invalid instruction
-            control_signal = 16'b0;
+		end else begin 
+            control_signal = 16'b0; // Invalid instruction
         end
+	end else begin
+		control_signal = 16'b0; // Reset state
 	end
+end
+
+	// The specification requires db_valid to remain low during reset.
+    assign o_db_valid = i_rstn & ctrl_db_valid;
+
 endmodule

@@ -58,6 +58,7 @@ module singlecycle (
 
 // Controller
     controller ctrl (
+        .i_rstn(i_rstn),
         .i_instr(instr),
         .i_br_equal(br_equal),
         .i_br_less(br_less),
@@ -74,7 +75,5 @@ module singlecycle (
 		.o_db_valid(ctrl_db_valid)
     );
 
-    // The specification requires db_valid to remain low during reset.
-    assign o_db_valid = i_rstn & ctrl_db_valid;
-
+    assign o_db_valid = ctrl_db_valid;
 endmodule 
