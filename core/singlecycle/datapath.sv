@@ -1,11 +1,11 @@
 module datapath (
     input logic i_clk, 
     input logic i_rstn,
-    input logic [31:0] i_dmem_rdata,
-    input logic [31:0] i_imem_rdata,
+    input logic [31:0] i_dmem_rdata, // Data memory data input
+    input logic [31:0] i_imem_rdata, // Instruction memory data input
 
     output logic [31:0] o_imem_addr, // Instruction memory address output
-    output logic [31:0] o_dmem_addr, 
+    output logic [31:0] o_dmem_addr, // Data memory address output
     output logic [31:0] o_dmem_wdata,
     output logic [3:0]  o_dmem_bmsk,
     output logic        o_dmem_wren,
