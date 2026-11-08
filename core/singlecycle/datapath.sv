@@ -57,11 +57,16 @@ module datapath (
             pc <= 32'h8000_0000;
         end else if (i_instr_valid) begin
             pc <= pc_next;
+        end else begin
+            pc <= pc; // Hold the current PC value if instruction is not valid
         end
     end
 
-    always_comb begin
-        if (instr[6:0] == 7'b1100111) begin
+    logic is_jalr;
+    assign is_jalr = (instr[6:0] == 7'b1100111); // Check if the instruction is JALR
+
+    always_comb begin : jalr_mux
+        if (is_jalr) begin
             pc_target = {alu_data[31:1], 1'b0}; // JALR instruction
         end else begin
             pc_target = alu_data; // Other instructions
