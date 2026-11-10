@@ -28,7 +28,7 @@ module simple_bus (
 
     // BUS <-> I/O Devices
     // Shared device interface
-    output logic [11:0] o_dev_addr,
+    output logic [11:0] o_dev_addr, //offset address
     output logic [31:0] o_dev_wdata,
     output logic [3:0]  o_dev_bmsk,
     // Individual write enable
