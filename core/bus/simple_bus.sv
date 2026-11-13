@@ -54,8 +54,6 @@ module simple_bus (
 
     logic led_sel;
     logic hex_sel;
-    logic sw_sel;
-    logic key_sel;
     logic timer_sel;
     logic gpio_sel;
     logic tb_sel;
@@ -67,8 +65,6 @@ module simple_bus (
 
     assign led_sel = io_sel && (i_core_bus_addr[15:12] == 4'h0);
     assign hex_sel = io_sel && (i_core_bus_addr[15:12] == 4'h1);
-    assign sw_sel = io_sel && (i_core_bus_addr[15:12] == 4'h2);
-    assign key_sel = io_sel && (i_core_bus_addr[15:12] == 4'h3);
     assign timer_sel = io_sel && (i_core_bus_addr[15:12] == 4'h4);
     assign gpio_sel = io_sel && (i_core_bus_addr[15:12] == 4'h5);
     assign tb_sel = io_sel && (i_core_bus_addr[15:12] == 4'hF);
@@ -87,8 +83,8 @@ module simple_bus (
     //IO 
     assign o_led_wren   = i_core_bus_wren & led_sel;
     assign o_hex_wren   = i_core_bus_wren & hex_sel;
-    assign o_sw_wren    = i_core_bus_wren & sw_sel;
-    assign o_key_wren   = i_core_bus_wren & key_sel;
+    assign o_sw_wren    = 1'b0; // SW is read-only, write ignored
+    assign o_key_wren   = 1'b0; // KEY is read-only, write ignored
     assign o_timer_wren = i_core_bus_wren & timer_sel;
     assign o_gpio_wren  = i_core_bus_wren & gpio_sel;
     assign o_tb_wren    = i_core_bus_wren & tb_sel;
@@ -103,7 +99,7 @@ module simple_bus (
         end
         else if (io_sel) begin
 
-            case (core_bus_addr[15:12])
+            case (i_core_bus_addr[15:12])
 
                 4'h0: o_bus_core_rdata = i_led_rdata;
                 4'h1: o_bus_core_rdata = i_hex_rdata;
@@ -111,12 +107,10 @@ module simple_bus (
                 4'h3: o_bus_core_rdata = i_key_rdata;
                 4'h4: o_bus_core_rdata = i_timer_rdata;
                 4'h5: o_bus_core_rdata = i_gpio_rdata;
-
                 // 0x4000F000 - 0x4000FFFF
                 // Testbench device is write-only.
                 // Its read value is zero.
                 4'hF: o_bus_core_rdata = 32'b0;
-
                 // Reserved address ranges
                 default: o_bus_core_rdata = 32'b0;
             endcase
