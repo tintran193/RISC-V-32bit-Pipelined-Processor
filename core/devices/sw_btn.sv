@@ -14,7 +14,7 @@ module sw_btn (
 
     logic [3:0] btn_value;
 
-    btn_value = ~i_btn[3:0];
+    assign btn_value = ~i_btn[3:0];
 
     // Read operation
     always_comb begin
