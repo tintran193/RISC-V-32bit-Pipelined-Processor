@@ -304,12 +304,8 @@ module milestone3 (
     // Check the supplied tb_device.sv port names before compiling.
 
     tb_device u_tb_device (
-        .i_clk         (i_clk),
-        .i_rstn        (i_rstn),
-
         .i_addr        (dev_addr),
         .i_wdata       (dev_wdata),
-        .i_bmsk        (dev_bmsk),
         .i_wren        (tb_wren),
 
         .o_event_valid (o_event_valid),
