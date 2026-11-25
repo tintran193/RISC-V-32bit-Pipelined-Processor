@@ -87,8 +87,8 @@ module led (
     end
     
     // Assign led outputs
-    o_ledr = ledr_reg;
-    o_ledg = ledg_reg;
-    o_ledb = ledb_reg;  
+    assign o_ledr = ledr_reg;
+    assign o_ledg = ledg_reg;
+    assign o_ledb = ledb_reg;  
 
 endmodule

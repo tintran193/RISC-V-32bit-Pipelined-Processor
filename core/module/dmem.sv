@@ -1,6 +1,6 @@
 module dmem #(
-    parameter logic [31:0] START_ADDR = 32'h8008_0000,
-    parameter int unsigned ADDR_WIDTH = 16
+    parameter logic [31:0] START_ADDR = 32'h8400_0000,
+    parameter int unsigned ADDR_WIDTH = 14
 ) (
     input  logic        i_clk,
     input  logic [31:0] i_addr,
